@@ -1,5 +1,5 @@
-// メンバー定義（SNSハンドル込み）
-export const MEMBERS = [
+// グローバルにメンバー情報を定義
+window.MEMBERS = [
   { id:'official', display:'ドゥラ・ムーン公式', color:'#000000',
     avatar:'image/duramoon.jpg', cheki:'#ドゥラムーン',
     x:'Duramoon__info', ig:'duramoon__info', tiktok:'duramoon_idol'
