@@ -1,36 +1,181 @@
-<!DOCTYPE html>
+<!doctype html>
+<!-- Version 3.0.3 : SNSまとめ & チェキタグまとめ（復元・安定化） -->
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DuraMoon 公式SNSまとめ</title>
-  <link rel="stylesheet" href="assets/common.css">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Dura-Moon Fan Hub｜公式まとめ</title>
+<link rel="stylesheet" href="assets/common.css">
+<script type="module">
+import {MEMBERS} from './assets/data.js';
+import {$, $$, toast, initTheme, openWithFallback} from './assets/utils.js';
+
+function svgIcon(key){
+  const map={
+    x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4l16 16M20 4L4 20"/></svg>',
+    ig:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><circle cx="17.5" cy="6.5" r="1.5"/></svg>',
+    tt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3v6a5 5 0 1 1-5 5"/><path d="M15 3c1.5 2 3.5 3 6 3"/></svg>'
+  };
+  return map[key]||'';
+}
+
+function linksetFor(m){
+  const arr=[];
+  if(m.x){
+    arr.push({
+      key:'x', label:'Xでフォロー',
+      href:`https://twitter.com/intent/follow?screen_name=${encodeURIComponent(m.x)}`,
+      open:()=>window.open(`https://twitter.com/intent/follow?screen_name=${encodeURIComponent(m.x)}`,'_blank')
+    });
+  }
+  if(m.ig){
+    const app=`instagram://user?username=${m.ig}`, web=`https://www.instagram.com/${m.ig}/`;
+    arr.push({key:'ig',label:'Instagramを開く',href:'#',open:()=>openWithFallback(app,web)});
+  }
+  if(m.tiktok){
+    const app=`snssdk1128://user/profile/@${m.tiktok}`, web=`https://www.tiktok.com/@${m.tiktok}`;
+    arr.push({key:'tt',label:'TikTokを開く',href:'#',open:()=>openWithFallback(app,web)});
+  }
+  return arr;
+}
+
+function renderFollow(){
+  const grid=$('#followTab'); grid.innerHTML='';
+  MEMBERS.forEach((m,idx)=>{
+    const card=document.createElement('div'); card.className='card'; card.style.setProperty('--accent',m.color);
+
+    const bar=document.createElement('div'); bar.className='bar';
+    const tag=document.createElement('div'); tag.className='tag'; tag.textContent=`#${String(idx+1).padStart(2,'0')}`;
+    const openall=document.createElement('button'); openall.className='openall'; openall.textContent='このメンバーのリンクを一括で開く';
+    const links=linksetFor(m);
+    openall.onclick=()=>{
+      links.forEach(lnk=>{
+        if(lnk.key==='ig'){ window.open(`https://www.instagram.com/${m.ig}/`,'_blank'); }
+        else if(lnk.key==='tt'){ window.open(`https://www.tiktok.com/@${m.tiktok}`,'_blank'); }
+        else { window.open(lnk.href,'_blank'); }
+      });
+    };
+    bar.appendChild(tag); bar.appendChild(openall);
+
+    const head=document.createElement('div'); head.className='head';
+    const av=document.createElement('img'); av.className='avatar'; av.src=m.avatar; av.alt=m.display;
+    const names=document.createElement('div'); names.className='names';
+    names.innerHTML=`<div class="display">${m.display}</div>`;
+    head.appendChild(av); head.appendChild(names);
+
+    const btns=document.createElement('div'); btns.className='btns';
+    const links2=linksetFor(m);
+    links2.forEach(lnk=>{
+      const a=document.createElement('a');
+      a.className='btn'; a.href=lnk.href;
+      a.onclick=(e)=>{ e.preventDefault(); lnk.open(e); };
+      a.innerHTML=svgIcon(lnk.key)+`<span>${lnk.label}</span>`;
+      btns.appendChild(a);
+    });
+
+    const cheki=document.createElement('div'); cheki.className='cheki';
+    if(m.cheki){
+      const a=document.createElement('a'); a.href=`https://x.com/hashtag/${encodeURIComponent(m.cheki.replace(/^#/,''))}`; a.textContent=m.cheki; a.target='_blank';
+      const copy=document.createElement('button'); copy.textContent='コピー';
+      copy.onclick=()=>navigator.clipboard.writeText(m.cheki).then(()=>toast(`${m.cheki} をコピーしました`));
+      cheki.appendChild(a); cheki.appendChild(copy);
+    }
+
+    card.appendChild(bar);
+    card.appendChild(head);
+    card.appendChild(btns);
+    card.appendChild(cheki);
+    grid.appendChild(card);
+  });
+}
+
+function renderTagList(){
+  const list=$('#tagList'); list.innerHTML='';
+  MEMBERS.forEach((m,i)=>{
+    if(!m.cheki) return;
+    const item=document.createElement('div'); item.className='tag-item';
+    item.innerHTML=`<label><input type="checkbox" value="${i}"> ${m.display} ${m.cheki}</label><button>コピー</button>`;
+    item.querySelector('button').onclick=()=>navigator.clipboard.writeText(m.cheki).then(()=>toast(`${m.cheki} をコピーしました`));
+    list.appendChild(item);
+  });
+}
+
+function renderChekiPicker(){
+  const picker=$('#chekiPicker'); picker.innerHTML='';
+  MEMBERS.forEach(m=>{
+    if(!m.cheki) return;
+    const o=document.createElement('option'); o.value=m.id; o.textContent=`${m.display}（${m.cheki}）`;
+    picker.appendChild(o);
+  });
+  $('#chekiCopy').onclick=()=>{
+    const id=picker.value;
+    const m=MEMBERS.find(v=>v.id===id);
+    if(!m?.cheki) return;
+    navigator.clipboard.writeText(m.cheki).then(()=>toast(`${m.cheki} をコピーしました`));
+  };
+}
+
+function init(){
+  initTheme();
+  renderFollow();
+  renderTagList();
+  renderChekiPicker();
+
+  $('#tab-follow').onclick=()=>switchTab('follow');
+  $('#tab-tags').onclick=()=>switchTab('tags');
+
+  $('#selectAll').onclick=()=>$$('#tagList input').forEach(cb=>cb.checked=true);
+  $('#selectNone').onclick=()=>$$('#tagList input').forEach(cb=>cb.checked=false);
+  $('#copySelected').onclick=()=>{
+    const tags=[...$$('#tagList input:checked')].map(cb=>MEMBERS[cb.value].cheki).join('\n');
+    if(!tags) return toast('タグが選択されていません');
+    navigator.clipboard.writeText(tags).then(()=>toast('選択タグをコピーしました'));
+  };
+  $('#copyAll').onclick=()=>{
+    const tags=MEMBERS.map(m=>m.cheki).filter(Boolean).join('\n');
+    navigator.clipboard.writeText(tags).then(()=>toast('全タグをコピーしました'));
+  };
+
+  switchTab('follow');
+}
+
+function switchTab(tab){
+  $('#followTab').style.display=(tab==='follow')?'grid':'none';
+  $('#tagsTab').style.display=(tab==='tags')?'block':'none';
+  $('#tab-follow').classList.toggle('active',tab==='follow');
+  $('#tab-tags').classList.toggle('active',tab==='tags');
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
 </head>
 <body>
-  <div class="version">Version 3.0.2</div>
-  <h1>Dura Moon 公式SNSまとめ</h1>
+  <div class="version">Version 3.0.3</div>
+  <div class="wrap">
+    <header>
+      <h1>Dura-Moon 公式SNSまとめ</h1>
+      <nav>
+        <button id="tab-follow" class="active">SNSまとめ</button>
+        <button id="tab-tags">チェキタグまとめ</button>
+        <div class="tools" style="margin-left:auto">
+          <label for="chekiPicker" style="color:#e2e8f0">🔖 指定メンバーのチェキタグ：</label>
+          <select id="chekiPicker"></select>
+          <button id="chekiCopy">コピー</button>
+        </div>
+      </nav>
+    </header>
 
-  <div class="tab-menu">
-    <button onclick="showSection('sns')">SNSまとめ</button>
-    <button onclick="showSection('cheki')">チェキタグまとめ</button>
-  </div>
+    <div id="followTab" class="grid"></div>
 
-  <!-- SNSまとめ -->
-  <div id="sns" class="section active">
-    <div id="sns-cards"></div>
-  </div>
-
-  <!-- チェキタグまとめ -->
-  <div id="cheki" class="section">
-    <div id="cheki-cards"></div>
-    <div class="bulk-copy">
-      <label for="bulkSelect">指定メンバーのチェキタグ:</label>
-      <select id="bulkSelect" multiple></select>
-      <button onclick="copySelectedTags()">選択したタグをコピー</button>
+    <div id="tagsTab" style="display:none">
+      <div class="tools-row">
+        <button id="selectAll">全選択</button>
+        <button id="selectNone">選択解除</button>
+        <button id="copySelected">選択タグをコピー</button>
+        <button id="copyAll">全タグをコピー</button>
+      </div>
+      <div class="tag-list" id="tagList"></div>
     </div>
   </div>
-
-  <script src="assets/data.js"></script>
-  <script src="assets/utils.js"></script>
 </body>
 </html>
