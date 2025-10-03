@@ -1,0 +1,63 @@
+<!doctype html>
+<!-- Version 3.0.1 : 掲示板（ローカル保存） -->
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Board｜Dura-Moon</title>
+<link rel="stylesheet" href="assets/common.css">
+<script type="module">
+import {$, $$, toast, initTheme} from './assets/utils.js';
+
+function getMsgs(){return JSON.parse(localStorage.getItem('dm_board')||'[]');}
+function setMsgs(v){localStorage.setItem('dm_board',JSON.stringify(v));}
+
+function render(){
+  initTheme();
+  const list=getMsgs();
+  const box=$('#list'); box.innerHTML='';
+  if(!list.length){box.innerHTML='<div style="color:#64748b">まだメッセージはありません。</div>';}
+  list.sort((a,b)=>b.ts-a.ts);
+  list.forEach((m,i)=>{
+    const item=document.createElement('div'); item.className='board-item';
+    const date=new Date(m.ts).toLocaleString();
+    item.innerHTML=`
+      <div><b>${m.name||'名無し'}</b> <span style="color:#64748b">${date}</span></div>
+      <div style="white-space:pre-wrap; margin-top:6px">${m.text}</div>
+      <div style="text-align:right; margin-top:6px"><button data-i="${i}" class="del">削除</button></div>
+    `;
+    box.appendChild(item);
+  });
+  $$('.del',box).forEach(b=>b.onclick=()=>{const cur=getMsgs(); cur.splice(+b.dataset.i,1); setMsgs(cur); render(); toast('削除しました');});
+
+  $('#post').onclick=()=>{
+    const name=$('#name').value.trim(); const text=$('#text').value.trim();
+    if(!text){toast('メッセージを入力してください');return;}
+    const cur=getMsgs(); cur.push({name,text,ts:Date.now()}); setMsgs(cur); render();
+    $('#text').value=''; toast('投稿しました');
+  };
+}
+document.addEventListener('DOMContentLoaded',render);
+</script>
+</head>
+<body>
+  <div class="version">Version 3.0.1</div>
+  <div class="wrap">
+    <header>
+      <h1>掲示板</h1>
+      <div class="nav">
+        <a href="index.html">SNSまとめ</a>
+        <a href="gallery.html">ギャラリー</a>
+        <a href="schedule.html">スケジュール</a>
+        <a class="active" href="board.html">掲示板</a>
+      </div>
+    </header>
+    <div class="board-form">
+      <input id="name" type="text" placeholder="お名前（任意）">
+      <textarea id="text" rows="4" placeholder="メッセージをどうぞ"></textarea>
+      <button id="post">投稿</button>
+    </div>
+    <div id="list" class="board-list"></div>
+  </div>
+</body>
+</html>

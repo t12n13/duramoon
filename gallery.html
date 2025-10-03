@@ -1,0 +1,49 @@
+<!doctype html>
+<!-- Version 3.0.1 : ギャラリーをローカル画像のみ -->
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Gallery｜Dura-Moon</title>
+<link rel="stylesheet" href="assets/common.css">
+<script type="module">
+import {GALLERY, MEMBERS} from './assets/data.js';
+import {$} from './assets/utils.js';
+
+function render(){
+  const sel=$('#memberFilter');
+  sel.innerHTML='<option value="">全員</option>'+MEMBERS.map(m=>`<option value="${m.id}">${m.display}</option>`).join('');
+  function draw(){
+    const id=sel.value;
+    const list=id?GALLERY.filter(g=>g.id===id):GALLERY;
+    const grid=$('#grid'); grid.innerHTML='';
+    if(!list.length){ grid.innerHTML='<div style="color:#64748b">画像は準備中です。</div>'; return; }
+    list.forEach(g=>{
+      const img=document.createElement('img'); img.src=g.src; img.alt=g.caption||'';
+      img.onclick=()=>{const lb=$('#lightbox'); lb.style.display='flex'; $('#lightImg').src=g.src; lb.onclick=()=>lb.style.display='none';};
+      grid.appendChild(img);
+    });
+  }
+  sel.onchange=draw; draw();
+}
+document.addEventListener('DOMContentLoaded',render);
+</script>
+</head>
+<body>
+  <div class="version">Version 3.0.1</div>
+  <div class="wrap">
+    <header>
+      <h1>ギャラリー</h1>
+      <div class="nav">
+        <a href="index.html">SNSまとめ</a>
+        <a class="active" href="gallery.html">ギャラリー</a>
+        <a href="schedule.html">スケジュール</a>
+        <a href="board.html">掲示板</a>
+        <select id="memberFilter" style="margin-left:auto"></select>
+      </div>
+    </header>
+    <div class="gallery" id="grid"></div>
+    <div id="lightbox" class="lightbox"><img id="lightImg" src=""></div>
+  </div>
+</body>
+</html>
