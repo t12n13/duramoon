@@ -1,37 +1,23 @@
-body {
-  font-family: Arial, sans-serif;
-  margin: 0; padding: 0;
-  background: url('../image/bg.png') no-repeat center center fixed;
-  background-size: cover;
-  color: #fff;
-}
-
-.version { font-size: 0.9rem; color: #ccc; margin: 5px; }
-h1 { text-align: center; margin-top: 20px; }
-
-.tabs { text-align: center; margin: 10px; }
-.tabs button { margin: 5px; padding: 5px 10px; }
-
-.card {
-  background: rgba(255,255,255,0.9);
-  color: #000;
-  border: 2px solid var(--accent);
-  border-radius: 12px;
-  padding: 10px;
-  margin: 10px;
-}
-
-.avatar { width: 60px; border-radius: 50%; }
-
-.toast {
-  position: fixed; bottom: 20px; left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0,0,0,0.8);
-  color: #fff; padding: 10px 20px;
-  border-radius: 8px;
-  animation: fade 2s forwards;
-}
-
-@keyframes fade {
-  0% { opacity:1; } 100% { opacity:0; }
-}
+:root{ --fg:#111; --muted:#6b7280; --bg:#fafafa; --card:#fff; --line:#e5e7eb }
+*{box-sizing:border-box}
+body{font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color:var(--fg); background:url('bg.png') center/cover fixed; margin:0}
+.wrap{max-width:1100px; margin:0 auto; padding:20px}
+.version{font-size:.8rem; color:#ccc; position:fixed; top:6px; left:6px}
+header{text-align:center; margin-bottom:20px}
+header h1{font-size:1.8rem; margin:0 0 10px}
+.nav{display:flex; justify-content:center; gap:10px}
+.section{display:none}
+.section.active{display:block}
+.grid{display:grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap:16px; margin-top:20px}
+.card{background:var(--card); border:2px solid var(--line); border-radius:14px; padding:14px; box-shadow:0 2px 6px rgba(0,0,0,0.1)}
+.head{display:flex; align-items:center; gap:12px; margin-bottom:12px}
+.avatar{width:60px; height:60px; border-radius:50%; object-fit:cover; border:2px solid var(--line)}
+.names{display:flex; flex-direction:column}
+.display{font-weight:600; font-size:1.1rem}
+.handle{color:var(--muted); font-size:.9rem}
+.btns{display:flex; justify-content:space-between; gap:12px; margin-top:10px}
+.btn{flex:1; min-width:100px; max-width:150px; display:flex; align-items:center; justify-content:center; gap:6px; padding:10px; border-radius:10px; border:1px solid var(--line); text-decoration:none; color:var(--fg); background:#fff; font-weight:600}
+.btn:hover{filter:brightness(0.95)}
+.bar{display:flex; align-items:center; justify-content:space-between; margin-bottom:8px}
+.bar .openall{font-size:.85rem; color:#0369a1; text-decoration:underline; background:none; border:none; cursor:pointer}
+.tag{font-size:.78rem; color:var(--muted)}

@@ -1,38 +1,37 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Dura Moon 公式SNSまとめ</title>
-  <link rel="stylesheet" href="assets/style.css?v=303b">
+  <link rel="stylesheet" href="assets/style.css">
+  <script src="assets/data.js"></script>
+  <script src="assets/utils.js"></script>
+  <script src="assets/app.js" defer></script>
 </head>
 <body>
-  <div class="version">Version 3.0.3</div>
-  <h1>Dura Moon 公式SNSまとめ</h1>
+  <div class="wrap">
+    <div class="version">Version 3.0.4</div>
+    <header>
+      <h1>Dura Moon 公式SNSまとめ</h1>
+      <div class="nav">
+        <button onclick="showSection('sns')">SNSまとめ</button>
+        <button onclick="showSection('tags')">チェキタグまとめ</button>
+      </div>
+    </header>
 
-  <div class="tabs">
-    <button id="tab-follow" class="active">SNSまとめ</button>
-    <button id="tab-tags">チェキタグまとめ</button>
+    <main>
+      <section id="sns-section" class="section active">
+        <div class="grid"></div>
+      </section>
+      <section id="tags-section" class="section">
+        <div class="tag-tools">
+          <label>📌 指定メンバーのチェキタグ：</label>
+          <select id="memberSelect"></select>
+          <button onclick="copySelectedTag()">コピー</button>
+        </div>
+      </section>
+    </main>
   </div>
-
-  <div id="followTab" class="tab"></div>
-  <div id="tagsTab" class="tab" style="display:none;">
-    <div id="tagList"></div>
-    <div class="tag-actions">
-      <button id="selectAll">全選択</button>
-      <button id="selectNone">全解除</button>
-      <button id="copySelected">選択したタグを改行区切りでコピー</button>
-      <button id="copyAll">全タグをコピー</button>
-    </div>
-    <div class="cheki-picker">
-      <span>📌 指定メンバーのチェキタグ：</span>
-      <select id="chekiPicker"></select>
-      <button id="chekiCopy">コピー</button>
-    </div>
-  </div>
-
-  <script defer src="assets/data.js?v=303b"></script>
-  <script defer src="assets/utils.js?v=303b"></script>
-  <script defer src="assets/app.js?v=303b"></script>
 </body>
 </html>
