@@ -34,9 +34,17 @@ nav button.active{background:#111; color:#fff; border-color:#111}
 .head{display:flex; align-items:center; gap:12px; margin-bottom:10px}
 .avatar{width:64px; height:64px; border-radius:50%; border:2px solid var(--accent,var(--line)); object-fit:cover; background:#e5e7eb}
 .names .display{font-weight:700}
-.btns{display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:8px; margin:8px 0}
-.btn{display:flex; align-items:center; justify-content:center; gap:8px; padding:12px 10px; border-radius:12px; border:1px solid var(--line); text-decoration:none; color:var(--fg); background:#fff; font-weight:600}
-.btn svg{width:18px; height:18px}
+.btns {
+  display: flex;              /* 横並び */
+  gap: 12px;                  /* ボタン間の隙間 */
+  justify-content: center;    /* 中央寄せ */
+  flex-wrap: wrap;            /* 画面が狭いときは折り返し */
+}
+
+.btn {
+  flex: 1;                    /* 均等幅にする（必要なら削除OK） */
+  min-width: 100px;           /* 最小幅を確保 */
+}
 .btn:hover{filter:brightness(.98)}
 .cheki{margin-top:6px}
 .cheki button{margin-left:8px}
