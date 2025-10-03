@@ -1,16 +1,19 @@
 <!doctype html>
-<!-- Version 2.10: 初期公開（フォロー機能＋プロフィールモーダル＋タブ＋ダークモード） -->
+<!-- Version 1.0.0: 初期公開（フォロー機能のみ） -->
+<!-- Version 2.10 : プロフィールモーダルに「一言」追加、タブ機能、ギャラリー対応 -->
+<!-- Version 2.11 : フォロータブ切替時にカードが表示されない不具合を修正 -->
+
 <html lang="ja">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Dura-Moon Fan Hub｜公式まとめ</title>
+<title>Follow Hub｜メンバー公式SNSまとめ</title>
 <style>
   :root{ --fg:#111; --muted:#6b7280; --bg:#fafafa; --card:#fff; --line:#e5e7eb }
   *{box-sizing:border-box}
   body{font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color:var(--fg); background:var(--bg); margin:0}
   .wrap{max-width:1000px; margin:0 auto; padding:20px}
-  header{display:flex; align-items:center; justify-content:space-between; gap:12px; margin:6px 0 18px} .brand{display:flex; align-items:center; gap:10px} .brand h1{margin:0} .navtabs{display:flex; gap:8px; flex-wrap:wrap} .tab{padding:8px 12px; border:1px solid var(--line); border-radius:999px; background:#fff; cursor:pointer; font-size:.92rem} .tab.active{background:#111; color:#fff; border-color:#111} .toggle{border:1px solid var(--line); padding:8px 10px; border-radius:10px; background:#fff; cursor:pointer; font-size:.9rem}
+  header{display:flex; align-items:center; justify-content:space-between; gap:12px; margin:6px 0 18px}
   header h1{font-size:1.25rem; margin:0}
   header .note{font-size:.9rem; color:var(--muted)}
   .grid{display:grid; grid-template-columns: repeat(1, minmax(0,1fr)); gap:14px}
@@ -18,7 +21,7 @@
   @media(min-width:1024px){ .grid{ grid-template-columns: repeat(3, minmax(0,1fr)); } }
   .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px}
   .head{display:flex; align-items:center; gap:12px; margin-bottom:10px}
-  .avatar{width:72px; height:72px; border-radius:50%; object-fit:cover; border:2px solid var(--accent, var(--line)); background:#ddd}
+  .avatar{width:54px; height:54px; border-radius:50%; object-fit:cover; border:1px solid var(--line); background:#ddd}
   .names{display:flex; flex-direction:column}
   .names .display{font-weight:600}
   .names .handle{color:var(--muted); font-size:.9rem}
@@ -30,358 +33,113 @@
   .bar{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px}
   .bar .openall{font-size:.9rem; color:#0369a1; text-decoration:underline; background:none; border:none; padding:6px 4px; cursor:pointer}
   .tag{font-size:.78rem; color:var(--muted)}
-  footer{color:var(--muted); font-size:.86rem; margin:22px 6px} .section{display:none} .section.active{display:block} .news{display:grid; gap:10px} .news-item{background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px} .sched{width:100%; border-collapse:separate; border-spacing:0 8px} .sched tr{background:#fff; border:1px solid var(--line)} .sched td{padding:10px 12px} .sched .date{font-weight:600} .gallery{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px} @media(min-width:900px){ .gallery{grid-template-columns:repeat(4,minmax(0,1fr));} } .gallery img{width:100%; aspect-ratio:1/1; object-fit:cover; border-radius:12px; border:1px solid var(--line)} [data-theme="dark"]{ --fg:#f5f5f5; --bg:#0b0b0b; --card:#111; --line:#2a2a2a } .btn, .tab, .toggle{background:var(--card)}
-  /* 追加: メンバーカラー（--accent）を使った装飾とレイアウト強化 */
-  .card{position:relative; border-left:6px solid var(--accent, var(--line)); box-shadow:0 2px 6px rgba(0,0,0,.04)}
-  .head .display{font-size:1.05rem}
-  .badge{display:inline-flex; align-items:center; gap:8px; font-size:.8rem; color:#0369a1}
-  .pill{display:inline-block; width:10px; height:10px; border-radius:999px; background:var(--accent, #111); border:1px solid rgba(0,0,0,.08)}
-  @media(min-width:1024px){ .btns{ grid-template-columns: repeat(3, minmax(0,1fr)); } }
-  /* モーダル */
-  .overlay{position:fixed; inset:0; background:rgba(0,0,0,.4); display:none;}
-  .modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; padding:16px}
-  .modal-card{max-width:720px; width:100%; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px}
-  .modal-head{display:flex; align-items:center; gap:14px; margin-bottom:10px}
-  .modal-avatar{width:92px; height:92px; border-radius:50%; object-fit:cover; border:3px solid var(--accent, var(--line))}
-  .modal-title{font-size:1.25rem; font-weight:700}
-  .modal-tagline{color:var(--muted); margin-top:4px}
-  .modal-actions{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:12px}
-  .closex{position:absolute; top:10px; right:14px; background:none; border:none; font-size:1.4rem; cursor:pointer}
+  footer{color:var(--muted); font-size:.86rem; margin:22px 6px}
+  .version{position:fixed; top:4px; left:6px; font-size:.8rem; color:var(--muted)}
+  .tabs{display:flex; gap:10px; margin-bottom:16px;}
+  .tab{padding:6px 12px; border-radius:20px; border:1px solid var(--line); background:#fff; cursor:pointer;}
+  .tab.active{background:#111; color:#fff; border-color:#111}
 </style>
 <script>
-  // ======== 設定：ここだけ埋めれば使えます ========
-  // メンバーごとのSNSハンドルを定義（不要なSNSは削除OK）
-  // avatar は任意（未設定可）。yt_channel は channel/UC... か @handle のどちらでもOK。
-  // avatar_pos オプションを追加可能（例:"40% 40%"）。未指定は中央。
-const MEMBERS = [
-    {
-      display: "ドゥラ・ムーン公式",
-      aka: "公式",
-      color: "#0ea5e9",
-      avatar: "image/duramoon.png?v=2",
-      x: "Duramoon__info",
-      ig: "duramoon__info",
-      tiktok: "duramoon_idol"
-    },
-    {
-      display: "髏黯 メア",
-      aka: "ろあん めあ",
-      color: "#8b5cf6",
-      avatar: "image/mea.jpg?v=2",
-      tagline: "『貴方の瞳の中で踊らせて』",
-      x: "mea__dura",
-      ig: "roamea_",
-      tiktok: "roamea_"
-    },
-    {
-      display: "琥珀 トワ",
-      aka: "こはく とわ",
-      color: "#f59e0b",
-      avatar: "image/towa.jpg?v=2",
-      tagline: "『貴方の世界に、永遠の夢毒をあげる♥』",
-      x: "towa__dura",
-      ig: "15milk01c",
-      tiktok: "tow4_nyan"
-    },
-    {
-      display: "御伽 望愛",
-      aka: "おとぎ のあ",
-      color: "#ec4899",
-      avatar: "image/noa.jpg?v=2",
-      tagline: "『約束の地で未来永劫の日々を』",
-      x: "noa__dura",
-      ig: "_1984180",
-      tiktok: "n0q1_o14"
-    },
-    {
-      display: "終宵 ねお",
-      aka: "おしまい ねお",
-      color: "#ef4444",
-      avatar: "image/neo.jpg?v=2",
-      tagline: "『狂うほど愛し合おう、この生き地獄で』",
-      x: "neo__dura",
-      ig: "ponkotsuneotaro_",
-      tiktok: "ponkotsuneotaro"
-    },
-    {
-      display: "死喰 ちる",
-      aka: "しくい ちる",
-      color: "#9ca3af",
-      avatar: "image/chill.jpg?v=2",
-      tagline: "『永遠に離さない、愛も憎しみも全部私のもの』",
-      x: "chill__dura",
-      ig: "xx_nyqn2_xx",
-      tiktok: "xx_nyan2_xx"
-    }
+  const MEMBERS = [
+    { display: "ドゥラ・ムーン公式", aka: "公式", avatar: "https://raw.githubusercontent.com/t12n13/duramoon/main/image/duramoon.png", x: "Duramoon__info", ig: "duramoon__info", tiktok: "duramoon_idol" },
+    { display: "髏黯 メア", aka: "ろあん めあ", avatar: "https://raw.githubusercontent.com/t12n13/duramoon/main/image/mea.jpg", x: "mea__dura", ig: "roamea_", tiktok: "roamea_" },
+    { display: "琥珀 トワ", aka: "こはく とわ", avatar: "https://raw.githubusercontent.com/t12n13/duramoon/main/image/towa.jpg", x: "towa__dura", ig: "15milk01c", tiktok: "tow4_nyan" },
+    { display: "御伽 望愛", aka: "おとぎ のあ", avatar: "https://raw.githubusercontent.com/t12n13/duramoon/main/image/noa.jpg", x: "noa__dura", ig: "_1984180", tiktok: "n0q1_o14" },
+    { display: "終宵 ねお", aka: "おしまい ねお", avatar: "https://raw.githubusercontent.com/t12n13/duramoon/main/image/neo.jpg", x: "neo__dura", ig: "ponkotsuneotaro_", tiktok: "ponkotsuneotaro" },
+    { display: "死喰 ちる", aka: "しくい ちる", avatar: "https://raw.githubusercontent.com/t12n13/duramoon/main/image/chill.jpg", x: "chill__dura", ig: "xx_nyqn2_xx", tiktok: "xx_nyan2_xx" }
   ];
 
-  // ======== 共通ユーティリティ ========
   const isIOS = /iP(hone|od|ad)/.test(navigator.userAgent);
   const isAndroid = /Android/.test(navigator.userAgent);
 
   function openWithFallback(appUrl, webUrl){
-    // 1タップでアプリDeepLink → 失敗ならWeb
     if(!(isIOS || isAndroid)){ window.open(webUrl, '_blank'); return; }
     const t = Date.now();
-    // iOS系で空白ページを避けるため setTimeout/hidden iframe などの方法もあるが、簡易法で十分
     window.location.href = appUrl;
-    setTimeout(() => {
-      if(Date.now() - t < 1600){ window.location.href = webUrl; }
-    }, 1200);
+    setTimeout(() => { if(Date.now() - t < 1600){ window.location.href = webUrl; } }, 1200);
   }
 
   function linksetFor(member){
-    // 各SNSのURL/DeepLinkを構築
     const links = [];
-    if(member.x){
-      links.push({
-        key:'x', label:'Xでフォロー',
-        href:`https://twitter.com/intent/follow?screen_name=${encodeURIComponent(member.x)}`,
-        open: (e)=>window.open(`https://twitter.com/intent/follow?screen_name=${encodeURIComponent(member.x)}`, '_blank')
-      });
-    }
-    if(member.yt_channel){
-      const yt = `https://www.youtube.com/${member.yt_channel}?sub_confirmation=1`;
-      links.push({ key:'yt', label:'YouTubeを登録', href:yt, open:(e)=>window.open(yt,'_blank') });
-    }
-    if(member.ig){
-      const app = `instagram://user?username=${member.ig}`;
-      const web = `https://www.instagram.com/${member.ig}/`;
-      links.push({ key:'ig', label:'Instagramを開く', href:'#', open:(e)=>openWithFallback(app, web) });
-    }
-    if(member.tiktok){
-      const app = `snssdk1128://user/profile/@${member.tiktok}`; // 失敗時はWebへ
-      const web = `https://www.tiktok.com/@${member.tiktok}`;
-      links.push({ key:'tt', label:'TikTokを開く', href:'#', open:(e)=>openWithFallback(app, web) });
-    }
-    if(member.line_id || member.line_short){
-      const app = member.line_id ? `line://ti/p/@${member.line_id}` : '';
-      const web = member.line_short ? `https://lin.ee/${member.line_short}` : `https://page.line.me/${member.line_id}`;
-      links.push({ key:'line', label:'LINE公式を追加', href:'#', open:(e)=>openWithFallback(app||web, web) });
-    }
+    if(member.x){ links.push({ key:'x', label:'Xでフォロー', href:`https://twitter.com/intent/follow?screen_name=${encodeURIComponent(member.x)}`, open:(e)=>window.open(`https://twitter.com/intent/follow?screen_name=${encodeURIComponent(member.x)}`,'_blank') }); }
+    if(member.ig){ const app=`instagram://user?username=${member.ig}`, web=`https://www.instagram.com/${member.ig}/`; links.push({ key:'ig', label:'Instagramを開く', href:'#', open:(e)=>openWithFallback(app,web) }); }
+    if(member.tiktok){ const app=`snssdk1128://user/profile/@${member.tiktok}`, web=`https://www.tiktok.com/@${member.tiktok}`; links.push({ key:'tt', label:'TikTokを開く', href:'#', open:(e)=>openWithFallback(app,web) }); }
     return links;
   }
 
   function render(){
-    const $grid = document.querySelector('.grid');
-    $grid.innerHTML = '';
-    MEMBERS.forEach((m, idx) => {
-      const card = document.createElement('div');
-      card.className = 'card';
-      if(m.color){ card.style.setProperty('--accent', m.color); }
-      // プロフィールモーダルを開く
-      card.addEventListener('click', (e)=>{
-        // ボタン領域のクリックは除外
-        if(e.target.closest('.btn')) return;
-        openProfile(m);
-      });
-      if(m.color){ card.style.setProperty('--accent', m.color); }
-
-      const bar = document.createElement('div');
-      bar.className = 'bar';
-      const tag = document.createElement('div');
-      tag.className = 'tag';
-      tag.innerHTML = `<span class="pill"></span> #${String(idx+1).padStart(2,'0')}`;
-      const openall = document.createElement('button');
-      openall.className = 'openall';
-      openall.textContent = 'このメンバーのリンクを一括で開く';
+    const $grid=document.querySelector('.grid');
+    $grid.innerHTML='';
+    MEMBERS.forEach((m,idx)=>{
+      const card=document.createElement('div'); card.className='card';
+      const bar=document.createElement('div'); bar.className='bar';
+      const tag=document.createElement('div'); tag.className='tag'; tag.textContent=`#${String(idx+1).padStart(2,'0')}`;
+      const openall=document.createElement('button'); openall.className='openall'; openall.textContent='このメンバーのリンクを一括で開く';
+      const links=linksetFor(m);
+      openall.onclick=()=>{ links.forEach((lnk)=>{ if(lnk.key==='ig'){window.open(`https://www.instagram.com/${m.ig}/`,'_blank');} else if(lnk.key==='tt'){window.open(`https://www.tiktok.com/@${m.tiktok}`,'_blank');} else{window.open(lnk.href,'_blank');} }); };
       bar.appendChild(tag); bar.appendChild(openall);
 
-      const head = document.createElement('div');
-      head.className = 'head';
-      const av = document.createElement('img');
-      av.className = 'avatar';
-      av.alt = m.display;
-      av.src = m.avatar || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="108" height="108"><rect width="100%" height="100%" fill="%23eee"/><text x="50%" y="54" dominant-baseline="middle" text-anchor="middle" fill="%23999" font-family="Arial" font-size="14">avatar</text></svg>';
-      // ここで個別のトリミング位置（object-position）を指定可能
-      av.style.objectPosition = (m.avatar_pos || '50% 50%');
-      const names = document.createElement('div');
-      names.className = 'names';
-      const d = document.createElement('div'); d.className = 'display'; d.textContent = m.display;
-      const h = document.createElement('div'); h.className = 'handle'; h.textContent = m.aka ? `@${m.aka}` : '';
+      const head=document.createElement('div'); head.className='head';
+      const av=document.createElement('img'); av.className='avatar'; av.alt=m.display; av.src=m.avatar;
+      const names=document.createElement('div'); names.className='names';
+      const d=document.createElement('div'); d.className='display'; d.textContent=m.display;
+      const h=document.createElement('div'); h.className='handle'; h.textContent=m.aka?`@${m.aka}`:'';
       names.appendChild(d); names.appendChild(h);
-      if(m.tagline){ const tg=document.createElement('div'); tg.style.fontSize='.85rem'; tg.style.color='var(--muted)'; tg.textContent=m.tagline; names.appendChild(tg); }
       head.appendChild(av); head.appendChild(names);
 
-      const btns = document.createElement('div');
-      btns.className = 'btns';
-      links.forEach(lnk => {
-        const a = document.createElement('a');
-        a.className = 'btn';
-        a.href = lnk.href;
-        a.onclick = (e)=>{ e.preventDefault(); lnk.open(e); };
-        a.innerHTML = icon(lnk.key) + '<span>'+lnk.label+'</span>';
-        btns.appendChild(a);
-      });
+      const btns=document.createElement('div'); btns.className='btns';
+      links.forEach(lnk=>{ const a=document.createElement('a'); a.className='btn'; a.href=lnk.href; a.onclick=(e)=>{e.preventDefault();lnk.open(e);}; a.innerHTML=icon(lnk.key)+'<span>'+lnk.label+'</span>'; btns.appendChild(a); });
 
-      card.appendChild(bar);
-      card.appendChild(head);
-      card.appendChild(btns);
-      $grid.appendChild(card);
+      card.appendChild(bar); card.appendChild(head); card.appendChild(btns); $grid.appendChild(card);
     });
   }
 
   function icon(key){
-    // シンプルなSVGアイコン（カラー指定なし）
-    const svgs = {
-      x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l16 16M20 4L4 20"/></svg>',
+    const svgs={
+      x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l16 16M20 4L4 20"/></svg>',
       ig:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><circle cx="17.5" cy="6.5" r="1.5"/></svg>',
-      tt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3v6a5 5 0 1 1-5 5"/><path d="M15 3c1.5 2 3.5 3 6 3"/></svg>',
-      yt:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6a3 3 0 0 0-2.1 2.1C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.5 15.5v-7l6 3.5-6 3.5z"/></svg>',
-      line:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.8 5.2C19.2 3.6 16.9 3 12.8 3h-1.6C7.1 3 4.8 3.6 3.2 5.2 1.6 6.8 1 9.1 1 13.2v.1c0 2.2 1.6 4.2 3.7 4.9l-.5 2c-.1.5.4.9.9.7l3-1.3c.6.1 1.1.1 1.8.1h1.6c4.1 0 6.4-.6 8-2.2 1.6-1.6 2.2-3.9 2.2-8v-.1c0-4.1-.6-6.4-2.2-8z"/></svg>'
+      tt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3v6a5 5 0 1 1-5 5"/><path d="M15 3c1.5 2 3.5 3 6 3"/></svg>'
     };
-    return svgs[key] || '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>'
+    return svgs[key]||'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>'
   }
 
-  // ---- 追加: お知らせ/スケジュール/ギャラリー ----
-  const NEWS = [
-    { date: '2025-10-01', title: '新曲「Luna Code」配信開始', body: '主要ストアで配信スタート！リンク集はX固定ポストへ。', link: '' },
-    { date: '2025-10-15', title: 'ワンマン決定', body: '渋谷WWW。チケット先行は公式Xから。', link: '' },
-  ];
-  const SCHEDULE = [
-    { date: '2025-10-20', time: '19:00', title: '渋谷WWW', note: '共演: XYZ / 物販あり', url: '' },
-    { date: '2025-11-03', time: '18:30', title: '大阪アメ村DROP', note: '詳細後日', url: '' },
-  ];
-  const GALLERY = [
-    'image/mea.jpg', 'image/towa.jpg', 'image/noa.jpg', 'image/neo.jpg', 'image/chill.jpg', 'image/duramoon.png'
-  ];
-
-  function renderNews(){
-    const box = document.querySelector('#news'); box.innerHTML='';
-    NEWS.forEach(n=>{
-      const el = document.createElement('div'); el.className='news-item';
-      el.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div class="date">${n.date}</div>${n.link?`<a href="${n.link}" target="_blank">詳しく</a>`:''}</div><div style="font-weight:600;margin:4px 0">${n.title}</div><div>${n.body||''}</div>`;
-      box.appendChild(el);
-    });
-  }
-  function renderSchedule(){
-    const t = document.querySelector('#sched'); t.innerHTML='';
-    SCHEDULE.forEach(s=>{
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td class="date">${s.date}</td><td>${s.time||''}</td><td>${s.title}</td><td>${s.note||''}</td><td>${s.url?`<a href="${s.url}" target="_blank">チケット</a>`:''}</td>`;
-      t.appendChild(tr);
-    });
-  }
-  function renderGallery(){
-    const g = document.querySelector('#gallery'); g.innerHTML='';
-    GALLERY.forEach(src=>{
-      const img = document.createElement('img'); img.src = src; img.loading='lazy';
-      g.appendChild(img);
-    });
+  function switchTab(tab){
+    const container=document.querySelector('.grid');
+    container.innerHTML='';
+    if(tab==='follow'){ render(); }
+    else if(tab==='news'){ container.innerHTML='<p>お知らせ準備中...</p>'; }
+    else if(tab==='schedule'){ container.innerHTML='<p>スケジュール準備中...</p>'; }
+    else if(tab==='gallery'){ container.innerHTML='<p>ギャラリー準備中...</p>'; }
   }
 
-  // ---- 追加: タブ & テーマ切替 ----
-  function initTabs(){
-    document.querySelectorAll('#tabs .tab').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        document.querySelectorAll('#tabs .tab').forEach(b=>b.classList.remove('active'));
+  document.addEventListener('DOMContentLoaded',()=>{
+    render();
+    document.querySelectorAll('.tab').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
         btn.classList.add('active');
-        const target = btn.getAttribute('data-target');
-        document.querySelectorAll('.section').forEach(sec=>sec.classList.remove('active'));
-        document.querySelector(target).classList.add('active');
+        switchTab(btn.dataset.tab);
       });
     });
-  }
-  function initTheme(){
-    const key='dm-theme';
-    const saved = localStorage.getItem(key);
-    if(saved){ document.documentElement.setAttribute('data-theme', saved); }
-    const btn = document.querySelector('#toggleTheme');
-    btn.addEventListener('click', ()=>{
-      const cur = document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
-      document.documentElement.setAttribute('data-theme', cur);
-      localStorage.setItem(key, cur);
-      btn.textContent = cur==='dark'?'☀️ ライト':'🌙 ダーク';
-    });
-    // 初期ボタン表示
-    const cur = document.documentElement.getAttribute('data-theme')||'light';
-    btn.textContent = cur==='dark'?'☀️ ライト':'🌙 ダーク';
-  }
-
-  function renderAll(){
-    render();
-    renderNews();
-    renderSchedule();
-    renderGallery();
-    initTabs();
-    initTheme();
-  }
-
-  // プロフィールモーダル生成
-  function openProfile(m){
-    let overlay = document.querySelector('.overlay');
-    let modal = document.querySelector('.modal');
-    if(!overlay){ overlay=document.createElement('div'); overlay.className='overlay'; document.body.appendChild(overlay); }
-    if(!modal){ modal=document.createElement('div'); modal.className='modal'; document.body.appendChild(modal); }
-    modal.innerHTML = '';
-    const card = document.createElement('div');
-    card.className='modal-card';
-    if(m.color){ card.style.setProperty('--accent', m.color); }
-    const close = document.createElement('button'); close.className='closex'; close.innerHTML='×'; close.onclick=closeModal;
-    const head = document.createElement('div'); head.className='modal-head';
-    const img = document.createElement('img'); img.className='modal-avatar'; img.src=m.avatar || ''; img.alt=m.display;
-    const info = document.createElement('div');
-    const ttl = document.createElement('div'); ttl.className='modal-title'; ttl.textContent=m.display;
-    const aka = document.createElement('div'); aka.style.color='var(--muted)'; aka.textContent=m.aka?`@${m.aka}`:'';
-    const tag = document.createElement('div'); tag.className='modal-tagline'; tag.textContent=m.tagline||'';
-    info.appendChild(ttl); info.appendChild(aka); if(m.tagline){ info.appendChild(tag); }
-    head.appendChild(img); head.appendChild(info);
-
-    const links = linksetFor(m);
-    const actions = document.createElement('div'); actions.className='modal-actions';
-    links.forEach(lnk=>{
-      const a=document.createElement('a'); a.className='btn'; a.href=lnk.href; a.onclick=(e)=>{e.preventDefault(); lnk.open(e);}; a.innerHTML=icon(lnk.key)+`<span>${lnk.label}</span>`; actions.appendChild(a);
-    });
-
-    card.appendChild(close); card.appendChild(head); card.appendChild(actions);
-    modal.appendChild(card);
-
-    overlay.style.display='block'; modal.style.display='flex';
-    overlay.onclick=closeModal;
-    document.addEventListener('keydown', escClose);
-
-    function escClose(ev){ if(ev.key==='Escape') closeModal(); }
-    function closeModal(){ overlay.style.display='none'; modal.style.display='none'; document.removeEventListener('keydown', escClose); }
-  }
-
-  document.addEventListener('DOMContentLoaded', renderAll);
+  });
 </script>
 </head>
 <body>
-  <div class=\"wrap\">
-    <div style='position:fixed; top:6px; left:10px; font-size:.8rem; color:var(--muted); z-index:1000;'>Version 2.10</div>
+  <div class="version">Version 2.11</div>
+  <div class="wrap">
     <header>
-      <div class="brand">
-        <h1>公式SNSまとめ（メンバー別）</h1>
-      </div>
-      <div class="navtabs" id="tabs">
-        <button class="tab active" data-target="#sec-follow">フォロー</button>
-        <button class="tab" data-target="#sec-news">お知らせ</button>
-        <button class="tab" data-target="#sec-schedule">スケジュール</button>
-        <button class="tab" data-target="#sec-gallery">ギャラリー</button>
-        <button class="toggle" id="toggleTheme">🌙 ダーク</button>
-      </div>
+      <h1>公式SNSまとめ（メンバー別）</h1>
+      <div class="note">1画面で各SNSのフォロー/登録ページを開けます。スマホはアプリDeepLink、未インストール時はWebに切替。</div>
     </header>
 
-    <section id="sec-follow" class="section active">
-      <div class="note">1画面で各SNSのフォロー/登録ページを開けます。スマホはアプリDeepLink、未インストール時はWebに切替。</div>
-      <div class="grid" id="grid-follow"><!-- JS --></div>
-    </section>
+    <div class="tabs">
+      <div class="tab active" data-tab="follow">フォロー</div>
+      <div class="tab" data-tab="news">お知らせ</div>
+      <div class="tab" data-tab="schedule">スケジュール</div>
+      <div class="tab" data-tab="gallery">ギャラリー</div>
+    </div>
 
-    <section id="sec-news" class="section">
-      <h2>お知らせ</h2>
-      <div class="news" id="news"><!-- JS --></div>
-    </section>
-
-    <section id="sec-schedule" class="section">
-      <h2>スケジュール</h2>
-      <table class="sched" id="sched"><!-- JS --></table>
-    </section>
-
-    <section id="sec-gallery" class="section">
-      <h2>ギャラリー</h2>
-      <div class="gallery" id="gallery"><!-- JS --></div>
-    </section>
+    <div class="grid"><!-- JSで描画 --></div>
 
     <footer>
       ※ 一部SNSは自動フォローを許可していないため、確認画面が表示されます。<br>
