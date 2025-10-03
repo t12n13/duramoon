@@ -34,7 +34,7 @@ nav button.active{background:#111; color:#fff; border-color:#111}
 .head{display:flex; align-items:center; gap:12px; margin-bottom:10px}
 .avatar{width:64px; height:64px; border-radius:50%; border:2px solid var(--accent,var(--line)); object-fit:cover; background:#e5e7eb}
 .names .display{font-weight:700}
-.btns{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:8px 0}
+.btns{display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:8px; margin:8px 0}
 .btn{display:flex; align-items:center; justify-content:center; gap:8px; padding:12px 10px; border-radius:12px; border:1px solid var(--line); text-decoration:none; color:var(--fg); background:#fff; font-weight:600}
 .btn svg{width:18px; height:18px}
 .btn:hover{filter:brightness(.98)}
