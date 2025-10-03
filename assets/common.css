@@ -45,5 +45,5 @@ nav button.active{background:#111; color:#fff; border-color:#111}
 .tag-item{background:#fff; padding:10px; border:1px solid var(--line); border-radius:10px; display:flex; justify-content:space-between; align-items:center}
 .toast{position:fixed; right:20px; bottom:20px; background:#111; color:#fff; padding:8px 12px; border-radius:8px; opacity:.95; box-shadow:0 6px 16px rgba(0,0,0,.25)}
 .cheki-label {
-  color: #8000ff;   /* 好きな色コードを指定 */
+  color: #ffffff;   /* 好きな色コードを指定 */
 }
