@@ -1,97 +1,36 @@
-<!doctype html>
-<!-- Version 3.0.1 : SNSまとめ + チェキタグコピー機能 　-->
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Dura-Moon Fan Hub｜公式まとめ</title>
-<link rel="stylesheet" href="assets/common.css">
-<script type="module">
-import {MEMBERS} from './assets/data.js';
-import {$, $$, initTheme, toast} from './assets/utils.js';
-
-function renderFollow(){
-  const grid=$('#followTab'); grid.innerHTML='';
-  MEMBERS.forEach((m,idx)=>{
-    const card=document.createElement('div'); card.className='card'; card.style.setProperty("--accent",m.color);
-    const head=document.createElement('div'); head.className='head';
-    const av=document.createElement('img'); av.className='avatar'; av.src=m.avatar; av.alt=m.display;
-    const names=document.createElement('div'); names.className='names';
-    names.innerHTML=`<div class="display">${m.display}</div>`;
-    head.appendChild(av); head.appendChild(names);
-    const cheki=document.createElement('div'); cheki.className='cheki';
-    if(m.cheki){
-      const a=document.createElement('a'); a.href=`https://x.com/hashtag/${encodeURIComponent(m.cheki.replace("#",""))}`; a.textContent=m.cheki; a.target="_blank";
-      const copy=document.createElement('button'); copy.textContent="コピー";
-      copy.onclick=()=>navigator.clipboard.writeText(m.cheki).then(()=>toast(`${m.cheki} をコピーしました`));
-      cheki.appendChild(a); cheki.appendChild(copy);
-    }
-    card.appendChild(head); card.appendChild(cheki);
-    grid.appendChild(card);
-  });
-}
-
-function renderTags(){
-  const list=$('#tagList'); list.innerHTML='';
-  MEMBERS.forEach((m,i)=>{
-    if(!m.cheki) return;
-    const item=document.createElement('div'); item.className='tag-item';
-    item.innerHTML=`
-      <label><input type="checkbox" value="${i}"> ${m.display} ${m.cheki}</label>
-      <button>コピー</button>
-    `;
-    const btn=item.querySelector('button');
-    btn.onclick=()=>navigator.clipboard.writeText(m.cheki).then(()=>toast(`${m.cheki} をコピーしました`));
-    list.appendChild(item);
-  });
-}
-
-function init(){
-  initTheme();
-  renderFollow(); renderTags();
-  $('#selectAll').onclick=()=>$$('#tagList input').forEach(cb=>cb.checked=true);
-  $('#selectNone').onclick=()=>$$('#tagList input').forEach(cb=>cb.checked=false);
-  $('#copySelected').onclick=()=>{
-    const tags=[...$$('#tagList input:checked')].map(cb=>MEMBERS[cb.value].cheki).join("\n");
-    if(!tags) return toast("タグが選択されていません");
-    navigator.clipboard.writeText(tags).then(()=>toast("選択タグをコピーしました"));
-  };
-  $('#copyAll').onclick=()=>{
-    const tags=MEMBERS.map(m=>m.cheki).filter(Boolean).join("\n");
-    navigator.clipboard.writeText(tags).then(()=>toast("全タグをコピーしました"));
-  };
-  $('#tab-follow').onclick=()=>switchTab('follow');
-  $('#tab-tags').onclick=()=>switchTab('tags');
-}
-function switchTab(tab){
-  $('#followTab').style.display=tab==='follow'?'grid':'none';
-  $('#tagsTab').style.display=tab==='tags'?'block':'none';
-  $('#tab-follow').classList.toggle('active',tab==='follow');
-  $('#tab-tags').classList.toggle('active',tab==='tags');
-}
-document.addEventListener('DOMContentLoaded',init);
-</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DuraMoon 公式SNSまとめ</title>
+  <link rel="stylesheet" href="assets/common.css">
 </head>
 <body>
-  <div class="version">Version 3.0.1</div>
-  <div class="wrap">
-    <header>
-      <h1>Dura-Moon 公式SNSまとめ</h1>
-      <nav>
-        <button id="tab-follow" class="active">SNSまとめ</button>
-        <button id="tab-tags">チェキタグまとめ</button>
-      </nav>
-    </header>
-    <div id="followTab" class="grid"></div>
-    <div id="tagsTab" style="display:none">
-      <div class="tools-row">
-        <button id="selectAll">全選択</button>
-        <button id="selectNone">選択解除</button>
-        <button id="copySelected">選択タグをコピー</button>
-        <button id="copyAll">全タグをコピー</button>
-      </div>
-      <div class="tag-list" id="tagList"></div>
+  <div class="version">Version 3.0.2</div>
+  <h1>Dura Moon 公式SNSまとめ</h1>
+
+  <div class="tab-menu">
+    <button onclick="showSection('sns')">SNSまとめ</button>
+    <button onclick="showSection('cheki')">チェキタグまとめ</button>
+  </div>
+
+  <!-- SNSまとめ -->
+  <div id="sns" class="section active">
+    <div id="sns-cards"></div>
+  </div>
+
+  <!-- チェキタグまとめ -->
+  <div id="cheki" class="section">
+    <div id="cheki-cards"></div>
+    <div class="bulk-copy">
+      <label for="bulkSelect">指定メンバーのチェキタグ:</label>
+      <select id="bulkSelect" multiple></select>
+      <button onclick="copySelectedTags()">選択したタグをコピー</button>
     </div>
   </div>
+
+  <script src="assets/data.js"></script>
+  <script src="assets/utils.js"></script>
 </body>
 </html>
