@@ -61,7 +61,7 @@
         <button id="selectAll">全選択</button>
         <button id="selectNone">選択解除</button>
         <button id="copySelected">選択タグを改行でコピー</button>
-        <button id="copyAll">全タグを一括コピー</button>
+        <button id="copyAll">全タグを改行でコピー</button>
       </div>
       <div class="tag-list" id="tagList"></div>
     </div>
@@ -141,11 +141,11 @@ document.getElementById("selectNone").onclick=()=>{
 document.getElementById("copySelected").onclick=()=>{
   const checks=[...document.querySelectorAll("#tagList input:checked")];
   if(checks.length===0){showToast("タグが選択されていません");return;}
-  const tags=checks.map(c=>MEMBERS[c.value].cheki).join("\n");  // ★ 改行区切りに変更
+  const tags=checks.map(c=>MEMBERS[c.value].cheki).join("\n");  // 改行区切り
   navigator.clipboard.writeText(tags).then(()=>showToast("選択タグを改行区切りでコピーしました"));
 };
 document.getElementById("copyAll").onclick=()=>{
-  const tags=MEMBERS.map(m=>m.cheki).filter(Boolean).join("\n"); // ★ 改行区切りに変更
+  const tags=MEMBERS.map(m=>m.cheki).filter(Boolean).join("\n"); // 改行区切り
   navigator.clipboard.writeText(tags).then(()=>showToast("全タグを改行区切りでコピーしました"));
 };
 
@@ -161,6 +161,8 @@ renderFollow(); renderTags();
 </script>
 </body>
 </html>
+
+
 
 
 
