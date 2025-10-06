@@ -1,25 +1,120 @@
-<!doctype html>
-<!-- Version 3.0.1 : スケジュール（簡易版） -->
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Schedule｜Dura-Moon</title>
-<link rel="stylesheet" href="assets/common.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>スケジュール | Dura Moon</title>
+  <link rel="stylesheet" href="assets/common.css">
+  <script src="assets/config.js"></script>
+  <script src="https://apis.google.com/js/api.js"></script>
 </head>
 <body>
-  <div class="version">Version 3.0.1</div>
   <div class="wrap">
     <header>
-      <h1>スケジュール</h1>
-      <div class="nav">
-        <a href="index.html">SNSまとめ</a>
-        <a href="gallery.html">ギャラリー</a>
-        <a class="active" href="schedule.html">スケジュール</a>
-        <a href="board.html">掲示板</a>
-      </div>
+      <h1>🗓 スケジュール</h1>
+      <nav class="nav">
+        <a href="./">SNSまとめ</a>
+      </nav>
     </header>
-    <p>ここにライブやチェキ会の日程を載せられるようにします。</p>
+    <p class="note">Googleカレンダーから予定を取得して表示します。カレンダー側を更新すると自動で反映されます。</p>
+    <div id="list" class="card-lite">読み込み中...</div>
   </div>
+
+  <script>
+    const tz = 'Asia/Tokyo';
+
+    function fmtDate(dtStr){
+      const d = new Date(dtStr);
+      const opts = { timeZone: tz, year:'numeric', month:'2-digit', day:'2-digit', weekday:'short' };
+      return new Intl.DateTimeFormat('ja-JP', opts).format(d);
+    }
+    function fmtTime(dtStr){
+      const d = new Date(dtStr);
+      if (!dtStr || isNaN(d)) return '';
+      const opts = { timeZone: tz, hour:'2-digit', minute:'2-digit' };
+      return new Intl.DateTimeFormat('ja-JP', opts).format(d);
+    }
+
+    function addICS(ev){
+      const start = ev.start.dateTime || (ev.start.date + 'T00:00:00');
+      const end   = ev.end?.dateTime || start;
+      function toUTC(dtStr){
+        const d = new Date(dtStr);
+        const y=d.getUTCFullYear(), m=('0'+(d.getUTCMonth()+1)).slice(-2), da=('0'+d.getUTCDate()).slice(-2),
+              h=('0'+d.getUTCHours()).slice(-2), mi=('0'+d.getUTCMinutes()).slice(-2), s='00';
+        return `${y}${m}${da}T${h}${mi}${s}Z`;
+      }
+      const ics = [
+        "BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//DuraMoon//Schedule//JP","CALSCALE:GREGORIAN",
+        "BEGIN:VEVENT",
+        `UID:${ev.id}`,
+        `DTSTAMP:${toUTC(new Date().toISOString())}`,
+        `DTSTART:${toUTC(start)}`,
+        `DTEND:${toUTC(end)}`,
+        `SUMMARY:${(ev.summary||'無題').replace(/\n/g,' ')}`,
+        `LOCATION:${(ev.location||'').replace(/\n/g,' ')}`,
+        `DESCRIPTION:${(ev.htmlLink||'').replace(/\n/g,' ')}`,
+        "END:VEVENT","END:VCALENDAR"
+      ].join("\r\n");
+      const blob = new Blob([ics], {type:'text/calendar;charset=utf-8;'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = (ev.start.date || ev.start.dateTime || 'event').slice(0,10) + "_" + (ev.summary||'event') + ".ics";
+      document.body.appendChild(a); a.click(); a.remove();
+    }
+
+    function renderEvents(items){
+      const root = document.getElementById('list');
+      root.innerHTML = '';
+      if(!items || !items.length){
+        root.innerHTML = '<div class="card-lite empty">今後の予定はありません。</div>';
+        return;
+      }
+      items.forEach(ev=>{
+        const start = ev.start.dateTime || (ev.start.date + 'T00:00:00');
+        const end   = ev.end?.dateTime;
+        const when = `${fmtDate(start)} ${fmtTime(start)}` + (end? ` 〜 ${fmtTime(end)}` : '');
+        const card = document.createElement('div');
+        card.className = 'card-lite';
+        card.innerHTML = `
+          <div class="title">${ev.summary || '無題のイベント'}</div>
+          <div class="meta">📅 ${when}</div>
+          ${ev.location ? `<div class="meta">📍 ${ev.location}</div>` : ''}
+          <div class="actions">
+            ${ev.htmlLink ? `<a class="btn-ghost" href="${ev.htmlLink}" target="_blank">Googleカレンダーで開く</a>` : ''}
+            <button class="btn-ghost" data-ics>📥 カレンダーに追加 (.ics)</button>
+          </div>`;
+        card.querySelector('[data-ics]').onclick = ()=> addICS(ev);
+        root.appendChild(card);
+      });
+    }
+
+    function initClient(){
+      const apiKey = (window.CONFIG && window.CONFIG.API_KEY) || '';
+      const calId  = (window.CONFIG && window.CONFIG.CAL_ID)  || '';
+      if(!apiKey || !calId){
+        document.getElementById('list').innerHTML = '<div class="card-lite error">設定ファイル（assets/config.js）の API_KEY と CAL_ID を設定してください。</div>';
+        return;
+      }
+      gapi.client.init({
+        apiKey: apiKey,
+        discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"]
+      })
+      .then(() => gapi.client.calendar.events.list({
+        calendarId: calId,
+        timeMin: (new Date()).toISOString(),
+        singleEvents: true,
+        orderBy: 'startTime',
+        maxResults: 30
+      }))
+      .then(res => renderEvents(res.result.items))
+      .catch(err => {
+        console.error(err);
+        document.getElementById('list').innerHTML = '<div class="card-lite error">読み込みに失敗しました。APIキーの制限（HTTPリファラー）とカレンダーの公開設定を確認してください。</div>';
+      });
+    }
+
+    gapi.load('client', initClient);
+  </script>
 </body>
 </html>

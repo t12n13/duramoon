@@ -3,33 +3,26 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Dura Moon 公式SNSまとめ</title>
-  <link rel="stylesheet" href="assets/style.css">
+  <title>Dura Moon 非公式HP｜SNSまとめ</title>
+  <link rel="stylesheet" href="assets/common.css">
   <script src="assets/data.js"></script>
   <script src="assets/utils.js"></script>
   <script src="assets/app.js" defer></script>
 </head>
 <body>
   <div class="wrap">
-    <div class="version">Version 3.0.4</div>
+    <div class="version">Version 3.20</div>
     <header>
-      <h1>Dura Moon 公式SNSまとめ</h1>
-      <div class="nav">
+      <h1>ドゥラ・ムーン 非公式HP</h1>
+      <nav class="nav">
         <button onclick="showSection('sns')">SNSまとめ</button>
-        <button onclick="showSection('tags')">チェキタグまとめ</button>
-      </div>
+        <a href="schedule.html">スケジュール</a>
+      </nav>
     </header>
 
     <main>
       <section id="sns-section" class="section active">
         <div class="grid"></div>
-      </section>
-      <section id="tags-section" class="section">
-        <div class="tag-tools">
-          <label>📌 指定メンバーのチェキタグ：</label>
-          <select id="memberSelect"></select>
-          <button onclick="copySelectedTag()">コピー</button>
-        </div>
       </section>
     </main>
   </div>
