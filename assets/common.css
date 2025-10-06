@@ -1,7 +1,7 @@
 body {
   margin: 0;
   font-family: "Noto Sans JP", sans-serif;
-  background: url("../image/bg.jpg") no-repeat center center fixed;
+  background: url("../image/bg.png") no-repeat center center fixed;
   background-size: cover;
   color: white;
 }
