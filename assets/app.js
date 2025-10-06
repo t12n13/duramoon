@@ -93,7 +93,7 @@ function getCheckedTags(){
   return tags;
 }
 
-function copySelectedTags(separator = '\n'){
+function copySelectedTags(separator = ' '){
   const tags = getCheckedTags();
   if(!tags.length){ alert('タグが選択されていません'); return; }
   const text = [...new Set(tags)].join(separator); // 重複排除して結合
