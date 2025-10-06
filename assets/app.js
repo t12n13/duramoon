@@ -58,6 +58,7 @@ function render(){
 
 document.addEventListener('DOMContentLoaded', ()=>{
   render();
+  renderTags();    // チェキタグ描画
   // もし data.js のロードが遅れていた場合の保険
   setTimeout(()=>{ if (Array.isArray(window.MEMBERS) && document.querySelector('.grid')?.children?.length===0) render(); }, 300);
 });
