@@ -9,7 +9,7 @@ body{
   margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;
   color:var(--fg); background:var(--bg) no-repeat fixed center/cover;
   /* 画像がある場合は image/bg.jpg を読み込み（assets から見て一つ上） */
-  background-image: url('../image/bg.jpg');
+  background-image: url('../image/bg.png');
 }
 a{color:inherit}
 
