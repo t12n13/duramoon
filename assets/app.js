@@ -61,3 +61,44 @@ document.addEventListener('DOMContentLoaded', ()=>{
   // もし data.js のロードが遅れていた場合の保険
   setTimeout(()=>{ if (Array.isArray(window.MEMBERS) && document.querySelector('.grid')?.children?.length===0) render(); }, 300);
 });
+
+/* ---------- チェキタグ描画 ---------- */
+function renderTags(){
+  const list = document.getElementById('tagList');
+  if(!list || !Array.isArray(MEMBERS)) return;
+
+  list.innerHTML = '';
+  MEMBERS.forEach((m, idx)=>{
+    const item = document.createElement('label');
+    item.className = 'tag-item';
+    item.style.borderColor = m.color || '#2a2f3a';
+    item.innerHTML = `
+      <input type="checkbox" class="tag-check" data-index="${idx}">
+      <div class="name">${m.display}</div>
+      <div class="hash">${m.tag||''}</div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+function getCheckedTags(){
+  const checks = document.querySelectorAll('.tag-check:checked');
+  const tags = [];
+  checks.forEach(ch=>{
+    const i = Number(ch.dataset.index);
+    const m = MEMBERS[i];
+    if(m?.tag) tags.push(m.tag);
+  });
+  return tags;
+}
+
+function copySelectedTags(separator = '\n'){
+  const tags = getCheckedTags();
+  if(!tags.length){ alert('タグが選択されていません'); return; }
+  const text = [...new Set(tags)].join(separator); // 重複排除して結合
+  copyText(text);
+}
+
+function selectAllTags(on){
+  document.querySelectorAll('.tag-check').forEach(ch=> ch.checked = !!on);
+}
