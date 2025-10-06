@@ -16,12 +16,24 @@
       <h1>ドゥラ・ムーン 非公式HP</h1>
       <nav class="nav">
         <button onclick="showSection('sns')">SNSまとめ</button>
+        <button onclick="showSection('tags')">チェキタグまとめ</button>
         <a href="schedule.html">スケジュール</a>
       </nav>
     </header>
-
     <main>
       <section id="sns-section" class="section active">
+      <section id="tags-section" class="section">
+        <div class="tag-tools">
+          <label class="cheki-label">📌 チェキタグ（複数選択可）</label>
+          <button class="btn-ghost" onclick="selectAllTags(true)">全選択</button>
+          <button class="btn-ghost" onclick="selectAllTags(false)">全解除</button>
+          <span style="flex:1"></span>
+          <button class="btn-ghost" onclick="copySelectedTags('\n')">改行でコピー</button>
+          <button class="btn-ghost" onclick="copySelectedTags(', ')">カンマ区切りでコピー</button>
+        </div>
+      <div id="tagList" class="tag-list"><!-- JSで描画 --></div>
+</section>
+
         <div class="grid"></div>
       </section>
     </main>
