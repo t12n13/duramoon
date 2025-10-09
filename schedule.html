@@ -81,6 +81,33 @@
 
     .empty{ color:#dbe2f3; opacity:.85; padding:18px 16px; border-radius:14px;
             border:1px dashed rgba(255,255,255,.15); background: rgba(255,255,255,.04) }
+    /* ---- URL / #tag / @mention のチップ ---- */
+    .chip-link, .chip-tag, .chip-at {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .22rem .6rem;
+      margin: .18rem .18rem 0 0;
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: .92rem;
+      color: #eef3ff;
+      background: rgba(255,255,255,.08);
+      backdrop-filter: blur(2px);
+      transition: transform .06s ease, filter .15s ease, background .15s ease;
+    }
+    .chip-link:hover, .chip-tag:hover, .chip-at:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.08);  
+    }
+    .chip-link .chip-ic {
+      width: 14px; height: 14px; border-radius: 3px;
+    }
+    .chip-tag { border-color: rgba(147,197,253,.45); background: rgba(147,197,253,.12); }
+    .chip-at  { border-color: rgba(192,132,252,.45); background: rgba(192,132,252,.12); }
+    }
   </style>
 </head>
 <body>
