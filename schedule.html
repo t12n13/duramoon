@@ -208,6 +208,53 @@
     }
 
     loadEvents();
+    // --- URL表示を短縮してchip化 ---------------------------------
+function shortenUrl(u) {
+  try {
+    const url = new URL(u);
+    // 表示は "host/path(短縮)" くらいに
+    let path = url.pathname.replace(/\/$/, '');
+    if (path.length > 24) path = path.slice(0, 24) + '…';
+    return `${url.host}${path ? path : ''}`;
+  } catch { return u; }
+}
+function faviconFor(u) {
+  try {
+    const host = new URL(u).host;
+    return `https://www.google.com/s2/favicons?domain=${host}&sz=16`;
+  } catch { return ''; }
+}
+
+// --- Xリンク/URL/ハッシュタグ/メンションをリンク化 ---------------
+function linkifyText(text) {
+  if (!text) return '';
+  // 1) エスケープ＆改行を <br> へ
+  const esc = (s)=>s.replace(/[&<>]/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;' }[m]));
+  let html = esc(text).replace(/\r?\n/g, '<br>');
+
+  // 2) URL → <a class="chip-link">（favicon + 短縮表示）
+  html = html.replace(/https?:\/\/[^\s<>()]+/g, (m) => {
+    const show = shortenUrl(m);
+    const fav  = faviconFor(m);
+    const isX  = /(^|\.)x\.com$|(^|\.)twitter\.com$/i.test(new URL(m).host);
+    const icon = isX ? '🕊️' : (fav ? `<img src="${fav}" alt="" class="chip-ic">` : '🔗');
+    return `<a class="chip-link" href="${m}" target="_blank" rel="noopener">${icon}<span>${show}</span></a>`;
+  });
+
+  // 3) ハッシュタグ → X検索
+  html = html.replace(/(^|[\s>])#([\p{L}\p{N}_]+)\b/gu, (_m, pre, tag) => {
+    const url = `https://x.com/hashtag/${encodeURIComponent(tag)}`;
+    return `${pre}<a class="chip-tag" href="${url}" target="_blank" rel="noopener">#${tag}</a>`;
+  });
+
+  // 4) @メンション → プロフィール
+  html = html.replace(/(^|[\s>])@([A-Za-z0-9_]{1,15})\b/g, (_m, pre, id) => {
+    const url = `https://x.com/${id}`;
+    return `${pre}<a class="chip-at" href="${url}" target="_blank" rel="noopener">@${id}</a>`;
+  });
+
+  return html;
+}
   </script>
 </body>
 </html>
