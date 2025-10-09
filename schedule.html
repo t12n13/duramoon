@@ -8,18 +8,13 @@
   <link rel="icon" type="image/png" href="/duramoon/favicon.png" />
 
   <style>
-    /* ===== ライブ風カードデザイン ===== */
+    /* --- ライブ感のあるカードデザイン --- */
     .wrap { max-width: 1100px; margin: 0 auto; padding: 24px; }
     .section-title { display:flex; align-items:center; gap:10px; margin: 12px 0 18px; }
     .section-title .icon { font-size:22px; }
-    .note { color: #d6def4; opacity:.85; margin-bottom: 4px; }
-    .nav { margin-top: 8px; }
-    .nav a.btn { text-decoration:none }
-
     .events { display: grid; grid-template-columns: 1fr; gap: 14px; }
-    @media (min-width: 760px) { .events { grid-template-columns: 1fr; } }
 
-    .event-card{
+    .event-card {
       position: relative;
       border-radius: 16px;
       padding: 18px 16px 14px;
@@ -29,7 +24,7 @@
       overflow: hidden;
       transition: transform .15s ease, box-shadow .15s ease;
     }
-    .event-card::before{
+    .event-card::before {
       content:"";
       position:absolute; inset:-1px;
       border-radius:18px;
@@ -37,173 +32,135 @@
       background: linear-gradient(135deg, rgba(255,61,138,.8), rgba(115,135,255,.85) 40%, rgba(40,190,255,.9));
       -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
       -webkit-mask-composite: xor; mask-composite: exclude;
-      opacity:.45; pointer-events:none;
+      opacity:.45;
+      pointer-events:none;
     }
-    .event-card:hover{
+    .event-card:hover {
       transform: translateY(-1px);
       box-shadow: 0 12px 24px rgba(0,0,0,.25);
     }
 
-    .event-head{ display:flex; align-items:flex-start; gap: 12px; }
-    .event-title{ font-weight:700; font-size:1.15rem; line-height:1.35; margin:0 0 4px; }
-    .event-meta{ color: var(--muted,#b8c0cc); font-size:.95rem; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-    .pill{ background: rgba(255,255,255,.09); border:1px solid rgba(255,255,255,.08); padding:6px 10px; border-radius:100px; }
+    .event-title { font-weight:700; font-size:1.15rem; margin:0 0 4px; }
+    .event-meta { color:#b8c0cc; font-size:.95rem; display:flex; flex-wrap:wrap; gap:8px; }
+    .pill { background: rgba(255,255,255,.09); border:1px solid rgba(255,255,255,.08); padding:6px 10px; border-radius:100px; }
     .dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.35); display:inline-block; }
-
-    .event-body{ margin-top:10px; color:#e6ebff; font-size:.98rem; line-height:1.6; }
-    .event-body .chip-link,
-    .event-body .chip-tag,
-    .event-body .chip-at{
-      display:inline-flex; align-items:center; gap:6px;
-      padding:3px 8px; border-radius:999px;
-      background: rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12);
-      text-decoration:none; color:#eef3ff; font-weight:600;
-    }
-    .event-body .chip-ic{ width:14px; height:14px; border-radius:3px; }
-    .event-body br{ line-height:1.1; }
-
-    .btns{ display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
-    .btn{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:10px 14px; border-radius:12px;
-      border:1px solid rgba(255,255,255,.12);
-      color:#f5f7ff; text-decoration:none; font-weight:700; letter-spacing:.2px;
-      background: rgba(28,30,40,.7);
-      transition: filter .15s ease, transform .15s ease;
-    }
-    .btn:hover{ filter: brightness(1.06); transform: translateY(-1px); }
+    .btns { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+    .btn { display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:12px;
+           border:1px solid rgba(255,255,255,.12); color:#f5f7ff; font-weight:700;
+           background: rgba(28,30,40,.7); text-decoration:none; }
     .btn.ticket { background: linear-gradient(135deg, #ff4da6, #7b5cff); }
-    .btn.site   { background: linear-gradient(135deg, #23c6ff, #358bff); }
-    .btn.gcal   { background: rgba(28,32,45,.7); }
-
-    .countdown{
-      display:inline-flex; align-items:center; gap:6px;
-      padding:4px 10px; border-radius:999px; font-size:.88rem; font-weight:700;
-      background: rgba(255,255,255,.1); color:#fff; border:1px solid rgba(255,255,255,.15);
-    }
-
-    .empty{ color:#dbe2f3; opacity:.85; padding:18px 16px; border-radius:14px;
-            border:1px dashed rgba(255,255,255,.15); background: rgba(255,255,255,.04) }
+    .btn.site { background: linear-gradient(135deg, #23c6ff, #358bff); }
+    .btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
       <h1 class="section-title"><span class="icon">📅</span> スケジュール</h1>
-      <p class="note">Googleカレンダーから予定を取得して表示します。カレンダー側を更新すると自動で反映されます。</p>
-      <nav class="nav"><a class="btn gcal" href="./">SNSまとめ</a></nav>
+      <p>Googleカレンダーから予定を取得して表示します。カレンダー側を更新すると自動で反映されます。</p>
+      <nav><a class="btn" href="./">SNSまとめ</a></nav>
     </header>
 
-    <section id="list" style="margin-top:12px">
+    <section id="list">
       <div id="events" class="events"></div>
     </section>
   </div>
 
   <script src="assets/config.js"></script>
   <script>
-    /* ========== 日付フォーマット ========== */
-    const fmtJP = (iso) => new Intl.DateTimeFormat('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'short',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(iso));
-    const fmtHM = (iso) => new Intl.DateTimeFormat('ja-JP',{hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(iso));
-    const daysLeft = (iso) => {const now=new Date();const t=new Date(iso);return Math.floor((t.setHours(0,0,0,0)-now.setHours(0,0,0,0))/(1000*60*60*24));};
+    // ==== 日付フォーマット ====
+    const fmtJP = iso => new Intl.DateTimeFormat('ja-JP', {
+      year:'numeric', month:'long', day:'numeric',
+      weekday:'short', hour:'2-digit', minute:'2-digit', hour12:false
+    }).format(new Date(iso));
 
-    /* ========== リンク化処理 ========== */
-    function shortenUrl(u){try{const url=new URL(u);let path=url.pathname.replace(/\/$/,'');if(path.length>24)path=path.slice(0,24)+'…';return `${url.host}${path?path:''}`}catch{return u}}
-    function faviconFor(u){try{return `https://www.google.com/s2/favicons?domain=${new URL(u).host}&sz=16`}catch{return''}}
+    const fmtHM = iso => new Intl.DateTimeFormat('ja-JP', {
+      hour:'2-digit', minute:'2-digit', hour12:false
+    }).format(new Date(iso));
 
-    function linkifyText(text){
-      if(!text)return'';
-      const esc=(s)=>s.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
-      let html=esc(text).replace(/\r?\n/g,'<br>');
-      html=html.replace(/https?:\/\/[^\s<>()]+/g,(m)=>{
-        const show=shortenUrl(m);const fav=faviconFor(m);
-        const host=(()=>{try{return new URL(m).host}catch{return''}})();
-        const isX=/(^|\.)x\.com$|(^|\.)twitter\.com$/i.test(host);
-        const icon=isX?'🕊️':(fav?`<img src="${fav}" alt="" class="chip-ic">`:'🔗');
-        return `<a class="chip-link" href="${m}" target="_blank" rel="noopener">${icon}<span>${show}</span></a>`;
-      });
-      html=html.replace(/(^|[\s>])#([\p{L}\p{N}_]+)\b/gu,(_m,pre,tag)=>`${pre}<a class="chip-tag" href="https://x.com/hashtag/${encodeURIComponent(tag)}" target="_blank">#${tag}</a>`);
-      html=html.replace(/(^|[\s>])@([A-Za-z0-9_]{1,15})\b/g,(_m,pre,id)=>`${pre}<a class="chip-at" href="https://x.com/${id}" target="_blank">@${id}</a>`);
-      return html;
-    }
+    const daysLeft = iso => {
+      const now = new Date(), t = new Date(iso);
+      const ms = t.setHours(0,0,0,0) - now.setHours(0,0,0,0);
+      return Math.floor(ms / (1000*60*60*24));
+    };
 
-    /* ========== description解析 (ticket/url/price/venue抽出) ========== */
-    function parseFieldsAndBody(desc=''){
-      const fields={};const rest=[];
-      // HTML除去 → プレーンテキスト化
-      const div=document.createElement('div');
-      div.innerHTML=desc;
-      const plain=div.textContent||div.innerText||'';
-      const lines=plain.split(/\r?\n/);
-      for(const line of lines){
-        const m=line.match(/^\s*(ticket|url|price|venue)\s*:\s*(.+)\s*$/i);
-        if(m){fields[m[1].toLowerCase()]=m[2].trim();}
-        else if(line.trim()!==''){rest.push(line);}
+    // ==== descriptionを解析 ====
+    function parseFields(desc = '') {
+      const fields = {};
+      if (!desc) return fields;
+
+      const text = String(desc).replace(/\r/g, '');
+      const re = /(?:^|\n)\s*(ticket|url|price|venue)\s*:\s*(.*?)(?=\n\s*(?:ticket|url|price|venue)\s*:|$)/gis;
+      let m;
+      while ((m = re.exec(text))) {
+        const key = m[1].toLowerCase();
+        let val = (m[2] || '').trim();
+        // ticket / url は URL のみ抽出
+        if (key === 'ticket' || key === 'url') {
+          const hit = val.match(/[^\s]+/);
+          if (hit) val = hit[0];
+        }
+        fields[key] = val;
       }
-      return {fields,body:rest.join('\n')};
+      return fields;
     }
 
-    const googleEventUrl=(e)=>e.htmlLink||`https://calendar.google.com/calendar/u/0/r/eventedit?text=${encodeURIComponent(e.summary||'')}`;
+    function googleEventUrl(e) {
+      return e.htmlLink || `https://calendar.google.com/calendar/u/0/r/eventedit?text=${encodeURIComponent(e.summary||'')}`;
+    }
 
-    /* ========== イベント読み込み ========== */
-    async function loadEvents(){
-      const eventsEl=document.getElementById('events');
-      eventsEl.innerHTML='読み込み中…';
-      const timeMin=new Date();timeMin.setHours(0,0,0,0);
+    async function loadEvents() {
+      const el = document.getElementById('events');
+      el.innerHTML = '読み込み中...';
 
-      const url=new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CONFIG.CAL_ID)}/events`);
-      url.searchParams.set('key',CONFIG.API_KEY);
-      url.searchParams.set('singleEvents','true');
-      url.searchParams.set('orderBy','startTime');
-      url.searchParams.set('timeMin',timeMin.toISOString());
-      url.searchParams.set('maxResults','50');
+      const url = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CONFIG.CAL_ID)}/events`);
+      url.searchParams.set('key', CONFIG.API_KEY);
+      url.searchParams.set('singleEvents', 'true');
+      url.searchParams.set('orderBy', 'startTime');
+      url.searchParams.set('timeMin', new Date().toISOString());
+      url.searchParams.set('maxResults', '50');
 
-      const res=await fetch(url);
-      if(!res.ok){eventsEl.innerHTML=`<div class="empty">読み込みに失敗しました。APIキーや公開設定を確認してください。</div>`;return;}
-      const data=await res.json();
-      const items=(data.items||[]).filter(e=>!e.status||e.status!=='cancelled');
-      if(!items.length){eventsEl.innerHTML=`<div class="empty">今後の予定はありません。</div>`;return;}
+      const res = await fetch(url);
+      if (!res.ok) {
+        el.innerHTML = `<div class="empty">読み込み失敗。APIキー設定を確認してください。</div>`;
+        return;
+      }
 
-      eventsEl.innerHTML='';
-      for(const e of items){
-        const start=e.start?.dateTime||(e.start?.date?e.start.date+'T00:00:00':null);
-        const end=e.end?.dateTime||(e.end?.date?e.end.date+'T23:59:59':null);
-        if(!start)continue;
+      const data = await res.json();
+      const items = (data.items || []).filter(e => e.status !== 'cancelled');
+      if (!items.length) {
+        el.innerHTML = `<div class="empty">今後の予定はありません。</div>`;
+        return;
+      }
 
-        const {fields,body}=parseFieldsAndBody(e.description||'');
-        const venue=e.location||fields.venue||'';
-        const price=fields.price||'';
-        const ticket=fields.ticket||'';
-        const site=fields.url||'';
+      el.innerHTML = '';
+      for (const e of items) {
+        const start = e.start?.dateTime || e.start?.date + 'T00:00:00';
+        const end = e.end?.dateTime || e.end?.date + 'T23:59:59';
+        const fields = parseFields(e.description || '');
+        const venue = fields.venue || '';
+        const price = fields.price || '';
+        const ticket = fields.ticket || '';
+        const site = fields.url || '';
+        const countdown = daysLeft(start) >= 0 ? `<span class="pill">⏳ あと${daysLeft(start)}日</span>` : '';
 
-        const htmlDesc=linkifyText(body);
-        const d=daysLeft(start);
-        const countdown=(d>=0)?`<span class="countdown">⏳ あと ${d} 日</span>`:'';
-        const timeText=end?`${fmtHM(start)} 〜 ${fmtHM(end)}`:fmtHM(start);
-
-        const card=document.createElement('article');
-        card.className='event-card';
-        card.innerHTML=`
-          <div class="event-head">
-            <div style="flex:1">
-              <h3 class="event-title">${e.summary||'(無題)'}</h3>
-              <div class="event-meta">
-                <span class="pill">📅 ${fmtJP(start)}</span>
-                <span class="dot"></span>
-                <span class="pill">🕒 ${timeText}</span>
-                ${venue?`<span class="dot"></span><span class="pill">📍 ${venue}</span>`:''}
-                ${price?`<span class="dot"></span><span class="pill">💴 ${price}</span>`:''}
-                ${countdown?`<span class="dot"></span>${countdown}`:''}
-              </div>
-            </div>
+        const card = document.createElement('article');
+        card.className = 'event-card';
+        card.innerHTML = `
+          <h3 class="event-title">${e.summary || '(無題)'}</h3>
+          <div class="event-meta">
+            <span class="pill">📅 ${fmtJP(start)}</span>
+            <span class="pill">🕒 ${fmtHM(start)}〜${fmtHM(end)}</span>
+            ${venue ? `<span class="pill">📍 ${venue}</span>` : ''}
+            ${price ? `<span class="pill">💴 ${price}</span>` : ''}
+            ${countdown}
           </div>
-          ${htmlDesc?`<div class="event-body">${htmlDesc}</div>`:''}
           <div class="btns">
-            ${ticket?`<a class="btn ticket" href="${ticket}" target="_blank" rel="noopener">🎟 チケット</a>`:''}
-            ${site?`<a class="btn site" href="${site}" target="_blank" rel="noopener">🔗 公式サイト</a>`:''}
-            <a class="btn gcal" href="${googleEventUrl(e)}" target="_blank">📆 Googleカレンダーで開く</a>
-          </div>
-        `;
-        eventsEl.appendChild(card);
+            ${ticket ? `<a class="btn ticket" href="${ticket}" target="_blank">🎫 チケット</a>` : ''}
+            ${site ? `<a class="btn site" href="${site}" target="_blank">🔗 公式サイト</a>` : ''}
+            <a class="btn" href="${googleEventUrl(e)}" target="_blank">📆 Googleカレンダーで開く</a>
+          </div>`;
+        el.appendChild(card);
       }
     }
 
