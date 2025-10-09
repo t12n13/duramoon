@@ -254,13 +254,6 @@
               <a class="btn gcal" href="${googleEventUrl(e)}" target="_blank" rel="noopener">📆 Googleカレンダーで開く</a>
             </div>
           `;
-
-          <div class="btns">
-            ${ticket ? `<a class="btn ticket" href="${ticket}" target="_blank" rel="noopener">🎟 チケット</a>` : ''}
-            ${site   ? `<a class="btn site"   href="${site}"   target="_blank" rel="noopener">🔗 公式サイト</a>` : ''}
-            <a class="btn gcal" href="${googleEventUrl(e)}" target="_blank" rel="noopener">📆 Googleカレンダーで開く</a>
-          </div>
-        `;
         eventsEl.appendChild(card);
       }
     }
