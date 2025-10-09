@@ -1,122 +1,213 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>スケジュール | Dura Moon</title>
   <link rel="stylesheet" href="assets/common.css">
-  <link rel="icon" type="image/png" href="/duramoon/favicon.png">
-  <script src="assets/config.js"></script>
-  <script src="https://apis.google.com/js/api.js"></script>
-  <script src="assets/api.js" defer></script>
+  <link rel="icon" type="image/png" href="/duramoon/favicon.png" />
+
+  <style>
+    /* --- ライブ感のあるカードデザイン追加 --- */
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    .section-title { display:flex; align-items:center; gap:10px; margin: 12px 0 18px; }
+    .section-title .icon { font-size:22px; }
+    .events { display: grid; grid-template-columns: 1fr; gap: 14px; }
+
+    @media (min-width: 760px) {
+      .events { grid-template-columns: 1fr; }
+    }
+
+    .event-card{
+      position: relative;
+      border-radius: 16px;
+      padding: 18px 16px 14px;
+      background: rgba(255,255,255,.06);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,.1);
+      overflow: hidden;
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .event-card::before{
+      content:"";
+      position:absolute; inset:-1px;
+      border-radius:18px;
+      padding:1px;
+      background:
+        linear-gradient(135deg, rgba(255,61,138,.8), rgba(115,135,255,.85) 40%, rgba(40,190,255,.9));
+      -webkit-mask:
+        linear-gradient(#000 0 0) content-box, 
+        linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude;
+      opacity:.45;
+      pointer-events:none;
+    }
+    .event-card:hover{
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(0,0,0,.25);
+    }
+
+    .event-head{ display:flex; align-items:flex-start; gap: 12px; }
+    .event-title{
+      font-weight:700; font-size:1.15rem; line-height:1.35; margin:0 0 4px;
+      letter-spacing:.2px;
+    }
+    .event-meta{ color: var(--muted,#b8c0cc); font-size:.95rem; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .pill{ background: rgba(255,255,255,.09); border:1px solid rgba(255,255,255,.08); padding:6px 10px; border-radius:100px; }
+    .dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.35); display:inline-block; }
+
+    .event-body{ margin-top:10px; color:#e6ebff; font-size:.98rem; }
+    .event-desc{ color:#d7def4; opacity:.9 }
+
+    .btns{ display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+    .btn{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 14px; border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
+      color:#f5f7ff; text-decoration:none; font-weight:700; letter-spacing:.2px;
+      background: rgba(28,30,40,.7);
+      transition: filter .15s ease, transform .15s ease;
+    }
+    .btn:hover{ filter: brightness(1.06); transform: translateY(-1px); }
+    .btn.ticket { background: linear-gradient(135deg, #ff4da6, #7b5cff); }
+    .btn.site   { background: linear-gradient(135deg, #23c6ff, #358bff); }
+    .btn.gcal   { background: rgba(28,32,45,.7); }
+
+    .countdown{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:4px 10px; border-radius:999px; font-size:.88rem; font-weight:700;
+      background: rgba(255,255,255,.1); color:#fff; border:1px solid rgba(255,255,255,.15);
+    }
+
+    .empty{ color:#dbe2f3; opacity:.85; padding:18px 16px; border-radius:14px;
+            border:1px dashed rgba(255,255,255,.15); background: rgba(255,255,255,.04) }
+  </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <h1>🗓 スケジュール</h1>
-      <nav class="nav">
-        <a href="./">SNSまとめ</a>
-      </nav>
+      <h1 class="section-title"><span class="icon">📅</span> スケジュール</h1>
+      <p class="note">Googleカレンダーから予定を取得して表示します。カレンダー側を更新すると自動で反映されます。</p>
+      <nav class="nav"><a class="btn gcal" href="./" style="margin-top:10px;">SNSまとめ</a></nav>
     </header>
-    <p class="note">Googleカレンダーから予定を取得して表示します。カレンダー側を更新すると自動で反映されます。</p>
-    <div id="list" class="card-lite">読み込み中...</div>
+
+    <section id="list" style="margin-top:12px">
+      <div id="events" class="events"></div>
+    </section>
   </div>
 
+  <script src="assets/config.js"></script>
   <script>
-    const tz = 'Asia/Tokyo';
+    // ====== 便利関数 ======
+    const fmtJP = (iso) => {
+      const d = new Date(iso);
+      return new Intl.DateTimeFormat('ja-JP', {
+        year:'numeric', month:'long', day:'numeric',
+        weekday:'short', hour:'2-digit', minute:'2-digit',
+        hour12:false
+      }).format(d);
+    };
+    const fmtHM = (iso) => {
+      const d = new Date(iso);
+      return new Intl.DateTimeFormat('ja-JP', { hour:'2-digit', minute:'2-digit', hour12:false }).format(d);
+    };
+    const daysLeft = (iso) => {
+      const now = new Date(); const t = new Date(iso);
+      const ms = t.setHours(0,0,0,0) - now.setHours(0,0,0,0);
+      return Math.floor(ms / (1000*60*60*24));
+    };
 
-    function fmtDate(dtStr){
-      const d = new Date(dtStr);
-      const opts = { timeZone: tz, year:'numeric', month:'2-digit', day:'2-digit', weekday:'short' };
-      return new Intl.DateTimeFormat('ja-JP', opts).format(d);
-    }
-    function fmtTime(dtStr){
-      const d = new Date(dtStr);
-      if (!dtStr || isNaN(d)) return '';
-      const opts = { timeZone: tz, hour:'2-digit', minute:'2-digit' };
-      return new Intl.DateTimeFormat('ja-JP', opts).format(d);
-    }
-
-    function addICS(ev){
-      const start = ev.start.dateTime || (ev.start.date + 'T00:00:00');
-      const end   = ev.end?.dateTime || start;
-      function toUTC(dtStr){
-        const d = new Date(dtStr);
-        const y=d.getUTCFullYear(), m=('0'+(d.getUTCMonth()+1)).slice(-2), da=('0'+d.getUTCDate()).slice(-2),
-              h=('0'+d.getUTCHours()).slice(-2), mi=('0'+d.getUTCMinutes()).slice(-2), s='00';
-        return `${y}${m}${da}T${h}${mi}${s}Z`;
+    // description から key: value を抜く
+    function parseFields(desc='') {
+      const fields = {};
+      const lines = (desc || '').split(/\r?\n/);
+      for (const line of lines) {
+        const m = line.match(/^\s*(ticket|url|price|venue)\s*:\s*(.+)\s*$/i);
+        if (m) fields[m[1].toLowerCase()] = m[2].trim();
       }
-      const ics = [
-        "BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//DuraMoon//Schedule//JP","CALSCALE:GREGORIAN",
-        "BEGIN:VEVENT",
-        `UID:${ev.id}`,
-        `DTSTAMP:${toUTC(new Date().toISOString())}`,
-        `DTSTART:${toUTC(start)}`,
-        `DTEND:${toUTC(end)}`,
-        `SUMMARY:${(ev.summary||'無題').replace(/\n/g,' ')}`,
-        `LOCATION:${(ev.location||'').replace(/\n/g,' ')}`,
-        `DESCRIPTION:${(ev.htmlLink||'').replace(/\n/g,' ')}`,
-        "END:VEVENT","END:VCALENDAR"
-      ].join("\r\n");
-      const blob = new Blob([ics], {type:'text/calendar;charset=utf-8;'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = (ev.start.date || ev.start.dateTime || 'event').slice(0,10) + "_" + (ev.summary||'event') + ".ics";
-      document.body.appendChild(a); a.click(); a.remove();
+      return fields;
     }
 
-    function renderEvents(items){
-      const root = document.getElementById('list');
-      root.innerHTML = '';
-      if(!items || !items.length){
-        root.innerHTML = '<div class="card-lite empty">今後の予定はありません。</div>';
+    // Google Cal のイベントページ URL
+    function googleEventUrl(e) {
+      return e.htmlLink || `https://calendar.google.com/calendar/u/0/r/eventedit?text=${encodeURIComponent(e.summary||'')}`;
+    }
+
+    async function loadEvents() {
+      const eventsEl = document.getElementById('events');
+      eventsEl.innerHTML = '読み込み中…';
+
+      const timeMin = new Date();
+      timeMin.setHours(0,0,0,0);
+
+      const url = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CONFIG.CAL_ID)}/events`);
+      url.searchParams.set('key', CONFIG.API_KEY);
+      url.searchParams.set('singleEvents', 'true');
+      url.searchParams.set('orderBy', 'startTime');
+      url.searchParams.set('timeMin', timeMin.toISOString());
+      url.searchParams.set('maxResults', '50');
+
+      const res = await fetch(url);
+      if (!res.ok) {
+        eventsEl.innerHTML = `<div class="empty">読み込みに失敗しました。APIキーの制限（HTTPリファラー）とカレンダーの公開設定をご確認ください。</div>`;
         return;
       }
-      items.forEach(ev=>{
-        const start = ev.start.dateTime || (ev.start.date + 'T00:00:00');
-        const end   = ev.end?.dateTime;
-        const when = `${fmtDate(start)} ${fmtTime(start)}` + (end? ` 〜 ${fmtTime(end)}` : '');
-        const card = document.createElement('div');
-        card.className = 'card-lite';
+      const data = await res.json();
+      const items = (data.items || []).filter(e => !e.status || e.status !== 'cancelled');
+
+      if (!items.length) {
+        eventsEl.innerHTML = `<div class="empty">今後の予定はありません。</div>`;
+        return;
+      }
+
+      eventsEl.innerHTML = '';
+      for (const e of items) {
+        const start = e.start?.dateTime || (e.start?.date ? e.start.date + 'T00:00:00' : null);
+        const end   = e.end?.dateTime   || (e.end?.date   ? e.end.date   + 'T23:59:59' : null);
+        if (!start) continue;
+
+        const fields = parseFields(e.description || '');
+        const venue  = e.location || fields.venue || '';
+        const price  = fields.price || '';
+        const ticket = fields.ticket || '';
+        const site   = fields.url || '';
+
+        const d = daysLeft(start);
+        let countdown = '';
+        if (d >= 0) countdown = `<span class="countdown">⏳ あと ${d} 日</span>`;
+
+        const timeText = end ? `${fmtHM(start)} 〜 ${fmtHM(end)}` : fmtHM(start);
+
+        const card = document.createElement('article');
+        card.className = 'event-card';
         card.innerHTML = `
-          <div class="title">${ev.summary || '無題のイベント'}</div>
-          <div class="meta">📅 ${when}</div>
-          ${ev.location ? `<div class="meta">📍 ${ev.location}</div>` : ''}
-          <div class="actions">
-            ${ev.htmlLink ? `<a class="btn-ghost" href="${ev.htmlLink}" target="_blank">Googleカレンダーで開く</a>` : ''}
-            <button class="btn-ghost" data-ics>📥 カレンダーに追加 (.ics)</button>
-          </div>`;
-        card.querySelector('[data-ics]').onclick = ()=> addICS(ev);
-        root.appendChild(card);
-      });
-    }
+          <div class="event-head">
+            <div style="flex:1">
+              <h3 class="event-title">${e.summary || '(無題)'}</h3>
+              <div class="event-meta">
+                <span class="pill">📅 ${fmtJP(start)}</span>
+                <span class="dot"></span>
+                <span class="pill">🕒 ${timeText}</span>
+                ${venue ? `<span class="dot"></span><span class="pill">📍 ${venue}</span>` : ''}
+                ${price ? `<span class="dot"></span><span class="pill">💴 ${price}</span>` : ''}
+                ${countdown ? `<span class="dot"></span>${countdown}` : ''}
+              </div>
+            </div>
+          </div>
 
-    function initClient(){
-      const apiKey = (window.CONFIG && window.CONFIG.API_KEY) || '';
-      const calId  = (window.CONFIG && window.CONFIG.CAL_ID)  || '';
-      if(!apiKey || !calId){
-        document.getElementById('list').innerHTML = '<div class="card-lite error">設定ファイル（assets/config.js）の API_KEY と CAL_ID を設定してください。</div>';
-        return;
+          ${e.description ? `<div class="event-body"><div class="event-desc">${(e.description||'').replace(/\n/g,'<br>')}</div></div>` : ''}
+
+          <div class="btns">
+            ${ticket ? `<a class="btn ticket" href="${ticket}" target="_blank" rel="noopener">🎟 チケット</a>` : ''}
+            ${site   ? `<a class="btn site"   href="${site}"   target="_blank" rel="noopener">🔗 公式サイト</a>` : ''}
+            <a class="btn gcal" href="${googleEventUrl(e)}" target="_blank" rel="noopener">📆 Googleカレンダーで開く</a>
+          </div>
+        `;
+        eventsEl.appendChild(card);
       }
-      gapi.client.init({
-        apiKey: apiKey,
-        discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"]
-      })
-      .then(() => gapi.client.calendar.events.list({
-        calendarId: calId,
-        timeMin: (new Date()).toISOString(),
-        singleEvents: true,
-        orderBy: 'startTime',
-        maxResults: 30
-      }))
-      .then(res => renderEvents(res.result.items))
-      .catch(err => {
-        console.error(err);
-        document.getElementById('list').innerHTML = '<div class="card-lite error">読み込みに失敗しました。APIキーの制限（HTTPリファラー）とカレンダーの公開設定を確認してください。</div>';
-      });
     }
 
-    gapi.load('client', initClient);
+    loadEvents();
   </script>
 </body>
 </html>
