@@ -53,12 +53,16 @@ document.addEventListener("DOMContentLoaded", () => {
       ul.style.margin = "12px 0";
 
       events.forEach(ev => {
-        const when = ev.start?.dateTime || ev.start?.date; // All-day 対応
-        const li = document.createElement("li");
-        li.style.margin = "8px 0";
-        li.textContent = `${new Date(when).toLocaleString("ja-JP")}：${ev.summary || "(無題)"}`;
-        ul.appendChild(li);
+        const when = ev.start?.dateTime || ev.start?.date;
+        const li = document.createElement("div");
+        li.classList.add("event-card");
+        li.innerHTML = `
+          <div class="event-time">${new Date(when).toLocaleString("ja-JP", { dateStyle: "medium", timeStyle: "short" })}</div>
+          <div class="event-title">${ev.summary || "(無題の予定)"}</div>
+  `      ;
+        root.appendChild(li);
       });
+
 
       root.appendChild(ul);
     } catch (e) {
@@ -70,3 +74,4 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
