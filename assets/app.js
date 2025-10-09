@@ -3,7 +3,7 @@ function linksetFor(m){
   if(m.x){ links.push({label:'Xでフォロー', open:()=>window.open(`https://twitter.com/intent/follow?screen_name=${m.x}`,'_blank')}); }
   if(m.ig){ links.push({label:'Instagramを開く', open:()=>openWithFallback(`instagram://user?username=${m.ig}`,`https://www.instagram.com/${m.ig}/`)}); }
   if(m.tiktok){ links.push({label:'TikTokを開く', open:()=>openWithFallback(`snssdk1128://user/profile/@${m.tiktok}`,`https://www.tiktok.com/@${m.tiktok}`)}); }
-  if(m.timetree){links.push({label:'TimeTreeを開く',open:()=>window.open(m.timetree, 'https://timetreeapp.com/public_calendars/duramoon_live')});}
+  if(m.timetree){links.push({label:'📅 ライブ予定はこちら', type:'timetree', open:()=>window.open(m.timetree,'_blank')});}}
   return links;
 }
 
