@@ -101,122 +101,105 @@
 
   <script src="assets/config.js"></script>
   <script>
-    /* ========== 日付フォーマット関連 ========== */
-    const fmtJP = (iso) => {
-      const d = new Date(iso);
-      return new Intl.DateTimeFormat('ja-JP', {
-        year:'numeric', month:'long', day:'numeric',
-        weekday:'short', hour:'2-digit', minute:'2-digit', hour12:false
-      }).format(d);
-    };
-    const fmtHM = (iso) => new Intl.DateTimeFormat('ja-JP', { hour:'2-digit', minute:'2-digit', hour12:false }).format(new Date(iso));
-    const daysLeft = (iso) => {
-      const now = new Date(); const t = new Date(iso);
-      return Math.floor((t.setHours(0,0,0,0) - now.setHours(0,0,0,0)) / (1000*60*60*24));
-    };
+    /* ========== 日付フォーマット ========== */
+    const fmtJP = (iso) => new Intl.DateTimeFormat('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'short',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(iso));
+    const fmtHM = (iso) => new Intl.DateTimeFormat('ja-JP',{hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(iso));
+    const daysLeft = (iso) => {const now=new Date();const t=new Date(iso);return Math.floor((t.setHours(0,0,0,0)-now.setHours(0,0,0,0))/(1000*60*60*24));};
 
-    /* ========== ユーティリティ関数 ========== */
-    function shortenUrl(u) {
-      try { const url = new URL(u); let path = url.pathname.replace(/\/$/, '');
-        if (path.length > 24) path = path.slice(0, 24) + '…';
-        return `${url.host}${path ? path : ''}`; } catch { return u; } }
-    function faviconFor(u) {
-      try { return `https://www.google.com/s2/favicons?domain=${new URL(u).host}&sz=16`; } catch { return ''; } }
+    /* ========== リンク化処理 ========== */
+    function shortenUrl(u){try{const url=new URL(u);let path=url.pathname.replace(/\/$/,'');if(path.length>24)path=path.slice(0,24)+'…';return `${url.host}${path?path:''}`}catch{return u}}
+    function faviconFor(u){try{return `https://www.google.com/s2/favicons?domain=${new URL(u).host}&sz=16`}catch{return''}}
 
-    // descriptionにHTMLタグが含まれる場合、安全にデコード
-    function decodeHTML(raw) {
-      const div = document.createElement('div');
-      div.innerHTML = raw;
-      return div.textContent || div.innerText || '';
-    }
-
-    // URL・ハッシュタグ・メンションをリンク化
-    function linkifyText(text) {
-      if (!text) return '';
-      const esc = (s)=>s.replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
-      let html = esc(text).replace(/\r?\n/g, '<br>');
-      html = html.replace(/https?:\/\/[^\s<>()]+/g, (m) => {
-        const show = shortenUrl(m); const fav = faviconFor(m);
-        const host = (()=>{ try{ return new URL(m).host; }catch{ return ''; }})();
-        const isX  = /(^|\.)x\.com$|(^|\.)twitter\.com$/i.test(host);
-        const icon = isX ? '🕊️' : (fav ? `<img src="${fav}" alt="" class="chip-ic">` : '🔗');
+    function linkifyText(text){
+      if(!text)return'';
+      const esc=(s)=>s.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+      let html=esc(text).replace(/\r?\n/g,'<br>');
+      html=html.replace(/https?:\/\/[^\s<>()]+/g,(m)=>{
+        const show=shortenUrl(m);const fav=faviconFor(m);
+        const host=(()=>{try{return new URL(m).host}catch{return''}})();
+        const isX=/(^|\.)x\.com$|(^|\.)twitter\.com$/i.test(host);
+        const icon=isX?'🕊️':(fav?`<img src="${fav}" alt="" class="chip-ic">`:'🔗');
         return `<a class="chip-link" href="${m}" target="_blank" rel="noopener">${icon}<span>${show}</span></a>`;
       });
-      html = html.replace(/(^|[\s>])#([\p{L}\p{N}_]+)\b/gu, (_m, pre, tag) => `${pre}<a class="chip-tag" href="https://x.com/hashtag/${encodeURIComponent(tag)}" target="_blank">#${tag}</a>`);
-      html = html.replace(/(^|[\s>])@([A-Za-z0-9_]{1,15})\b/g, (_m, pre, id) => `${pre}<a class="chip-at" href="https://x.com/${id}" target="_blank">@${id}</a>`);
+      html=html.replace(/(^|[\s>])#([\p{L}\p{N}_]+)\b/gu,(_m,pre,tag)=>`${pre}<a class="chip-tag" href="https://x.com/hashtag/${encodeURIComponent(tag)}" target="_blank">#${tag}</a>`);
+      html=html.replace(/(^|[\s>])@([A-Za-z0-9_]{1,15})\b/g,(_m,pre,id)=>`${pre}<a class="chip-at" href="https://x.com/${id}" target="_blank">@${id}</a>`);
       return html;
     }
 
-    // 項目抽出 (ticket / url / price / venue)
-    function parseFieldsAndBody(desc='') {
-      const fields = {}; const rest = [];
-      const lines = (desc || '').split(/\r?\n/);
-      for (const line of lines) {
-        const m = line.match(/^\s*(ticket|url|price|venue)\s*:\s*(.+)\s*$/i);
-        if (m) fields[m[1].toLowerCase()] = m[2].trim();
-        else if (line.trim() !== '') rest.push(line);
+    /* ========== description解析 (ticket/url/price/venue抽出) ========== */
+    function parseFieldsAndBody(desc=''){
+      const fields={};const rest=[];
+      // HTML除去 → プレーンテキスト化
+      const div=document.createElement('div');
+      div.innerHTML=desc;
+      const plain=div.textContent||div.innerText||'';
+      const lines=plain.split(/\r?\n/);
+      for(const line of lines){
+        const m=line.match(/^\s*(ticket|url|price|venue)\s*:\s*(.+)\s*$/i);
+        if(m){fields[m[1].toLowerCase()]=m[2].trim();}
+        else if(line.trim()!==''){rest.push(line);}
       }
-      return { fields, body: rest.join('\n') };
+      return {fields,body:rest.join('\n')};
     }
 
-    const googleEventUrl = (e) => e.htmlLink || `https://calendar.google.com/calendar/u/0/r/eventedit?text=${encodeURIComponent(e.summary||'')}`;
+    const googleEventUrl=(e)=>e.htmlLink||`https://calendar.google.com/calendar/u/0/r/eventedit?text=${encodeURIComponent(e.summary||'')}`;
 
     /* ========== イベント読み込み ========== */
-    async function loadEvents() {
-      const eventsEl = document.getElementById('events');
-      eventsEl.innerHTML = '読み込み中…';
-      const timeMin = new Date(); timeMin.setHours(0,0,0,0);
+    async function loadEvents(){
+      const eventsEl=document.getElementById('events');
+      eventsEl.innerHTML='読み込み中…';
+      const timeMin=new Date();timeMin.setHours(0,0,0,0);
 
-      const url = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CONFIG.CAL_ID)}/events`);
-      url.searchParams.set('key', CONFIG.API_KEY);
+      const url=new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CONFIG.CAL_ID)}/events`);
+      url.searchParams.set('key',CONFIG.API_KEY);
       url.searchParams.set('singleEvents','true');
       url.searchParams.set('orderBy','startTime');
-      url.searchParams.set('timeMin', timeMin.toISOString());
+      url.searchParams.set('timeMin',timeMin.toISOString());
       url.searchParams.set('maxResults','50');
 
-      const res = await fetch(url);
-      if (!res.ok) { eventsEl.innerHTML = `<div class="empty">読み込みに失敗しました。APIキーや公開設定を確認してください。</div>`; return; }
-      const data = await res.json();
-      const items = (data.items||[]).filter(e=>!e.status||e.status!=='cancelled');
-      if (!items.length) { eventsEl.innerHTML = `<div class="empty">今後の予定はありません。</div>`; return; }
+      const res=await fetch(url);
+      if(!res.ok){eventsEl.innerHTML=`<div class="empty">読み込みに失敗しました。APIキーや公開設定を確認してください。</div>`;return;}
+      const data=await res.json();
+      const items=(data.items||[]).filter(e=>!e.status||e.status!=='cancelled');
+      if(!items.length){eventsEl.innerHTML=`<div class="empty">今後の予定はありません。</div>`;return;}
 
-      eventsEl.innerHTML = '';
-      for (const e of items) {
-        const start = e.start?.dateTime || (e.start?.date ? e.start.date + 'T00:00:00' : null);
-        const end   = e.end?.dateTime   || (e.end?.date   ? e.end.date   + 'T23:59:59' : null);
-        if (!start) continue;
+      eventsEl.innerHTML='';
+      for(const e of items){
+        const start=e.start?.dateTime||(e.start?.date?e.start.date+'T00:00:00':null);
+        const end=e.end?.dateTime||(e.end?.date?e.end.date+'T23:59:59':null);
+        if(!start)continue;
 
-        const { fields, body } = parseFieldsAndBody(e.description || '');
-        const venue = e.location || fields.venue || '';
-        const price = fields.price || '';
-        const ticket = fields.ticket || '';
-        const site = fields.url || '';
+        const {fields,body}=parseFieldsAndBody(e.description||'');
+        const venue=e.location||fields.venue||'';
+        const price=fields.price||'';
+        const ticket=fields.ticket||'';
+        const site=fields.url||'';
 
-        const htmlDesc = linkifyText(decodeHTML(body));
-        const d = daysLeft(start);
-        const countdown = (d >= 0) ? `<span class="countdown">⏳ あと ${d} 日</span>` : '';
-        const timeText = end ? `${fmtHM(start)} 〜 ${fmtHM(end)}` : fmtHM(start);
+        const htmlDesc=linkifyText(body);
+        const d=daysLeft(start);
+        const countdown=(d>=0)?`<span class="countdown">⏳ あと ${d} 日</span>`:'';
+        const timeText=end?`${fmtHM(start)} 〜 ${fmtHM(end)}`:fmtHM(start);
 
-        const card = document.createElement('article');
-        card.className = 'event-card';
-        card.innerHTML = `
+        const card=document.createElement('article');
+        card.className='event-card';
+        card.innerHTML=`
           <div class="event-head">
             <div style="flex:1">
-              <h3 class="event-title">${e.summary || '(無題)'}</h3>
+              <h3 class="event-title">${e.summary||'(無題)'}</h3>
               <div class="event-meta">
                 <span class="pill">📅 ${fmtJP(start)}</span>
                 <span class="dot"></span>
                 <span class="pill">🕒 ${timeText}</span>
-                ${venue ? `<span class="dot"></span><span class="pill">📍 ${venue}</span>` : ''}
-                ${price ? `<span class="dot"></span><span class="pill">💴 ${price}</span>` : ''}
-                ${countdown ? `<span class="dot"></span>${countdown}` : ''}
+                ${venue?`<span class="dot"></span><span class="pill">📍 ${venue}</span>`:''}
+                ${price?`<span class="dot"></span><span class="pill">💴 ${price}</span>`:''}
+                ${countdown?`<span class="dot"></span>${countdown}`:''}
               </div>
             </div>
           </div>
-          ${htmlDesc ? `<div class="event-body">${htmlDesc}</div>` : ''}
+          ${htmlDesc?`<div class="event-body">${htmlDesc}</div>`:''}
           <div class="btns">
-            ${ticket ? `<a class="btn ticket" href="${ticket}" target="_blank" rel="noopener">🎟 チケット</a>` : ''}
-            ${site ? `<a class="btn site" href="${site}" target="_blank" rel="noopener">🔗 公式サイト</a>` : ''}
+            ${ticket?`<a class="btn ticket" href="${ticket}" target="_blank" rel="noopener">🎟 チケット</a>`:''}
+            ${site?`<a class="btn site" href="${site}" target="_blank" rel="noopener">🔗 公式サイト</a>`:''}
             <a class="btn gcal" href="${googleEventUrl(e)}" target="_blank">📆 Googleカレンダーで開く</a>
           </div>
         `;
