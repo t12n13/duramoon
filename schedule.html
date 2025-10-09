@@ -195,7 +195,38 @@
             </div>
           </div>
 
-          ${e.description ? `<div class="event-body"><div class="event-desc">${(e.description||'').replace(/\n/g,'<br>')}</div></div>` : ''}
+          // 「ticket: / url: / price: / venue:」行は説明欄から除外
+          const cleanedDesc = (e.description || '')
+            .split(/\r?\n/)
+            .filter(line => !/^\s*(ticket|url|price|venue)\s*:/i.test(line))
+            .join('\n');
+
+          // URL / #タグ / @メンションをリンク化＋チップ化
+          const htmlDesc = linkifyText(cleanedDesc);
+
+          card.innerHTML = `
+            <div class="event-head">
+              <div style="flex:1">
+                <h3 class="event-title">${e.summary || '(無題)'}</h3>
+                <div class="event-meta">
+                  <span class="pill">📅 ${fmtJP(start)}</span>
+                  <span class="dot"></span>
+                  <span class="pill">🕒 ${timeText}</span>
+                  ${venue ? `<span class="dot"></span><span class="pill">📍 ${venue}</span>` : ''}
+                  ${price ? `<span class="dot"></span><span class="pill">💴 ${price}</span>` : ''}
+                  ${countdown ? `<span class="dot"></span>${countdown}` : ''}
+                </div>
+              </div>
+            </div>
+
+            ${htmlDesc ? `<div class="event-body"><div class="event-desc">${htmlDesc}</div></div>` : ''}
+
+            <div class="btns">
+              ${ticket ? `<a class="btn ticket" href="${ticket}" target="_blank" rel="noopener">🎟 チケット</a>` : ''}
+              ${site   ? `<a class="btn site"   href="${site}"   target="_blank" rel="noopener">🔗 公式サイト</a>` : ''}
+              <a class="btn gcal" href="${googleEventUrl(e)}" target="_blank" rel="noopener">📆 Googleカレンダーで開く</a>
+            </div>
+          `;
 
           <div class="btns">
             ${ticket ? `<a class="btn ticket" href="${ticket}" target="_blank" rel="noopener">🎟 チケット</a>` : ''}
