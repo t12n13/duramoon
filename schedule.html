@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="/duramoon/favicon.png" />
 
   <style>
-    /* ===== ライブ感あるカード ===== */
+    /* ===== ライブ風カードデザイン ===== */
     .wrap { max-width: 1100px; margin: 0 auto; padding: 24px; }
     .section-title { display:flex; align-items:center; gap:10px; margin: 12px 0 18px; }
     .section-title .icon { font-size:22px; }
@@ -34,11 +34,8 @@
       position:absolute; inset:-1px;
       border-radius:18px;
       padding:1px;
-      background:
-        linear-gradient(135deg, rgba(255,61,138,.8), rgba(115,135,255,.85) 40%, rgba(40,190,255,.9));
-      -webkit-mask:
-        linear-gradient(#000 0 0) content-box,
-        linear-gradient(#000 0 0);
+      background: linear-gradient(135deg, rgba(255,61,138,.8), rgba(115,135,255,.85) 40%, rgba(40,190,255,.9));
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
       -webkit-mask-composite: xor; mask-composite: exclude;
       opacity:.45; pointer-events:none;
     }
@@ -46,17 +43,11 @@
       transform: translateY(-1px);
       box-shadow: 0 12px 24px rgba(0,0,0,.25);
     }
+
     .event-head{ display:flex; align-items:flex-start; gap: 12px; }
-    .event-title{
-      font-weight:700; font-size:1.15rem; line-height:1.35; margin:0 0 4px;
-      letter-spacing:.2px;
-    }
-    .event-meta{
-      color: var(--muted,#b8c0cc); font-size:.95rem;
-      display:flex; align-items:center; gap:8px; flex-wrap:wrap;
-    }
-    .pill{ background: rgba(255,255,255,.09); border:1px solid rgba(255,255,255,.08);
-           padding:6px 10px; border-radius:100px; }
+    .event-title{ font-weight:700; font-size:1.15rem; line-height:1.35; margin:0 0 4px; }
+    .event-meta{ color: var(--muted,#b8c0cc); font-size:.95rem; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .pill{ background: rgba(255,255,255,.09); border:1px solid rgba(255,255,255,.08); padding:6px 10px; border-radius:100px; }
     .dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.35); display:inline-block; }
 
     .event-body{ margin-top:10px; color:#e6ebff; font-size:.98rem; line-height:1.6; }
@@ -110,135 +101,100 @@
 
   <script src="assets/config.js"></script>
   <script>
-    /* ========== ユーティリティ ========== */
+    /* ========== 日付フォーマット関連 ========== */
     const fmtJP = (iso) => {
       const d = new Date(iso);
       return new Intl.DateTimeFormat('ja-JP', {
         year:'numeric', month:'long', day:'numeric',
-        weekday:'short', hour:'2-digit', minute:'2-digit',
-        hour12:false
+        weekday:'short', hour:'2-digit', minute:'2-digit', hour12:false
       }).format(d);
     };
-    const fmtHM = (iso) => {
-      const d = new Date(iso);
-      return new Intl.DateTimeFormat('ja-JP', { hour:'2-digit', minute:'2-digit', hour12:false }).format(d);
-    };
+    const fmtHM = (iso) => new Intl.DateTimeFormat('ja-JP', { hour:'2-digit', minute:'2-digit', hour12:false }).format(new Date(iso));
     const daysLeft = (iso) => {
       const now = new Date(); const t = new Date(iso);
-      const ms = t.setHours(0,0,0,0) - now.setHours(0,0,0,0);
-      return Math.floor(ms / (1000*60*60*24));
+      return Math.floor((t.setHours(0,0,0,0) - now.setHours(0,0,0,0)) / (1000*60*60*24));
     };
 
-    // URLの見た目短縮
+    /* ========== ユーティリティ関数 ========== */
     function shortenUrl(u) {
-      try {
-        const url = new URL(u);
-        let path = url.pathname.replace(/\/$/, '');
+      try { const url = new URL(u); let path = url.pathname.replace(/\/$/, '');
         if (path.length > 24) path = path.slice(0, 24) + '…';
-        return `${url.host}${path ? path : ''}`;
-      } catch { return u; }
-    }
+        return `${url.host}${path ? path : ''}`; } catch { return u; } }
     function faviconFor(u) {
-      try { return `https://www.google.com/s2/favicons?domain=${new URL(u).host}&sz=16`; } catch { return ''; }
+      try { return `https://www.google.com/s2/favicons?domain=${new URL(u).host}&sz=16`; } catch { return ''; } }
+
+    // descriptionにHTMLタグが含まれる場合、安全にデコード
+    function decodeHTML(raw) {
+      const div = document.createElement('div');
+      div.innerHTML = raw;
+      return div.textContent || div.innerText || '';
     }
 
-    // Xリンク/URL/ハッシュタグ/メンションをリンク化（安全に）
+    // URL・ハッシュタグ・メンションをリンク化
     function linkifyText(text) {
       if (!text) return '';
-      const esc = (s)=>s.replace(/[&<>]/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;' }[m]));
+      const esc = (s)=>s.replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
       let html = esc(text).replace(/\r?\n/g, '<br>');
-
-      // URL → chipリンク化
       html = html.replace(/https?:\/\/[^\s<>()]+/g, (m) => {
-        const show = shortenUrl(m);
-        const fav  = faviconFor(m);
+        const show = shortenUrl(m); const fav = faviconFor(m);
         const host = (()=>{ try{ return new URL(m).host; }catch{ return ''; }})();
         const isX  = /(^|\.)x\.com$|(^|\.)twitter\.com$/i.test(host);
         const icon = isX ? '🕊️' : (fav ? `<img src="${fav}" alt="" class="chip-ic">` : '🔗');
         return `<a class="chip-link" href="${m}" target="_blank" rel="noopener">${icon}<span>${show}</span></a>`;
       });
-
-      // #タグ → X検索
-      html = html.replace(/(^|[\s>])#([\p{L}\p{N}_]+)\b/gu, (_m, pre, tag) => {
-        const url = `https://x.com/hashtag/${encodeURIComponent(tag)}`;
-        return `${pre}<a class="chip-tag" href="${url}" target="_blank" rel="noopener">#${tag}</a>`;
-      });
-
-      // @メンション → Xプロフィール
-      html = html.replace(/(^|[\s>])@([A-Za-z0-9_]{1,15})\b/g, (_m, pre, id) => {
-        const url = `https://x.com/${id}`;
-        return `${pre}<a class="chip-at" href="${url}" target="_blank" rel="noopener">@${id}</a>`;
-      });
-
+      html = html.replace(/(^|[\s>])#([\p{L}\p{N}_]+)\b/gu, (_m, pre, tag) => `${pre}<a class="chip-tag" href="https://x.com/hashtag/${encodeURIComponent(tag)}" target="_blank">#${tag}</a>`);
+      html = html.replace(/(^|[\s>])@([A-Za-z0-9_]{1,15})\b/g, (_m, pre, id) => `${pre}<a class="chip-at" href="https://x.com/${id}" target="_blank">@${id}</a>`);
       return html;
     }
 
-    // descriptionの項目抽出 + 残り本文
-    // 例）ticket: https://... / url: https://... / price: ... / venue: ...
+    // 項目抽出 (ticket / url / price / venue)
     function parseFieldsAndBody(desc='') {
-      const fields = {};
-      const rest = [];
+      const fields = {}; const rest = [];
       const lines = (desc || '').split(/\r?\n/);
       for (const line of lines) {
         const m = line.match(/^\s*(ticket|url|price|venue)\s*:\s*(.+)\s*$/i);
-        if (m) {
-          fields[m[1].toLowerCase()] = m[2].trim();
-        } else if (line.trim() !== '') {
-          rest.push(line);
-        }
+        if (m) fields[m[1].toLowerCase()] = m[2].trim();
+        else if (line.trim() !== '') rest.push(line);
       }
       return { fields, body: rest.join('\n') };
     }
 
-    // Google Cal のイベントページ URL
     const googleEventUrl = (e) => e.htmlLink || `https://calendar.google.com/calendar/u/0/r/eventedit?text=${encodeURIComponent(e.summary||'')}`;
 
-    /* ========== 予定ロード ========== */
+    /* ========== イベント読み込み ========== */
     async function loadEvents() {
       const eventsEl = document.getElementById('events');
       eventsEl.innerHTML = '読み込み中…';
-
       const timeMin = new Date(); timeMin.setHours(0,0,0,0);
 
       const url = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CONFIG.CAL_ID)}/events`);
       url.searchParams.set('key', CONFIG.API_KEY);
-      url.searchParams.set('singleEvents', 'true');
-      url.searchParams.set('orderBy', 'startTime');
+      url.searchParams.set('singleEvents','true');
+      url.searchParams.set('orderBy','startTime');
       url.searchParams.set('timeMin', timeMin.toISOString());
-      url.searchParams.set('maxResults', '50');
+      url.searchParams.set('maxResults','50');
 
       const res = await fetch(url);
-      if (!res.ok) {
-        eventsEl.innerHTML = `<div class="empty">読み込みに失敗しました。APIキーの制限（HTTPリファラー）とカレンダーの公開設定をご確認ください。</div>`;
-        return;
-      }
+      if (!res.ok) { eventsEl.innerHTML = `<div class="empty">読み込みに失敗しました。APIキーや公開設定を確認してください。</div>`; return; }
       const data = await res.json();
-      const items = (data.items || []).filter(e => !e.status || e.status !== 'cancelled');
-
-      if (!items.length) {
-        eventsEl.innerHTML = `<div class="empty">今後の予定はありません。</div>`;
-        return;
-      }
+      const items = (data.items||[]).filter(e=>!e.status||e.status!=='cancelled');
+      if (!items.length) { eventsEl.innerHTML = `<div class="empty">今後の予定はありません。</div>`; return; }
 
       eventsEl.innerHTML = '';
-
       for (const e of items) {
         const start = e.start?.dateTime || (e.start?.date ? e.start.date + 'T00:00:00' : null);
         const end   = e.end?.dateTime   || (e.end?.date   ? e.end.date   + 'T23:59:59' : null);
         if (!start) continue;
 
-        // descriptionから項目行を取り除き、本文だけをリンク化
         const { fields, body } = parseFieldsAndBody(e.description || '');
         const venue = e.location || fields.venue || '';
         const price = fields.price || '';
         const ticket = fields.ticket || '';
         const site = fields.url || '';
 
-        const htmlDesc = linkifyText(body);
-
+        const htmlDesc = linkifyText(decodeHTML(body));
         const d = daysLeft(start);
         const countdown = (d >= 0) ? `<span class="countdown">⏳ あと ${d} 日</span>` : '';
-
         const timeText = end ? `${fmtHM(start)} 〜 ${fmtHM(end)}` : fmtHM(start);
 
         const card = document.createElement('article');
@@ -257,13 +213,11 @@
               </div>
             </div>
           </div>
-
           ${htmlDesc ? `<div class="event-body">${htmlDesc}</div>` : ''}
-
           <div class="btns">
             ${ticket ? `<a class="btn ticket" href="${ticket}" target="_blank" rel="noopener">🎟 チケット</a>` : ''}
-            ${site   ? `<a class="btn site"   href="${site}"   target="_blank" rel="noopener">🔗 公式サイト</a>` : ''}
-            <a class="btn gcal" href="${googleEventUrl(e)}" target="_blank" rel="noopener">📆 Googleカレンダーで開く</a>
+            ${site ? `<a class="btn site" href="${site}" target="_blank" rel="noopener">🔗 公式サイト</a>` : ''}
+            <a class="btn gcal" href="${googleEventUrl(e)}" target="_blank">📆 Googleカレンダーで開く</a>
           </div>
         `;
         eventsEl.appendChild(card);
