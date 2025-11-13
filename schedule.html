@@ -133,24 +133,55 @@
     };
 
     // ==== descriptionを解析 ====
-    function parseFields(desc = '') {
-      const fields = {};
-      if (!desc) return fields;
+    // 説明欄から ticket / url / price / venue を抜き出す（頑丈版）
+function parseFields(desc = '') {
+  const fields = {};
+  // 正規化：改行 / 全角スペース / <br> を統一
+  const norm = String(desc)
+    .replace(/\r\n/g, '\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/\u00A0/g, ' ')     // NBSP
+    .replace(/\u3000/g, ' ');    // 全角スペース → 半角
 
-      const text = String(desc).replace(/\r/g, '');
-      const re = /(?:^|\n)\s*(ticket|url|price|venue)\s*:\s*(.*?)(?=\n\s*(?:ticket|url|price|venue)\s*:|$)/gis;
-      let m;
-      while ((m = re.exec(text))) {
-        const key = m[1].toLowerCase();
-        let val = (m[2] || '').trim();
-        // ticket / url は URL のみ抽出
-        if (key === 'ticket' || key === 'url') {
-          const hit = val.match(/[^\s]+/);
-          if (hit) val = hit[0];
-        }
-        fields[key] = val;
-      }
-      return fields;
+  const lines = norm.split('\n');
+
+  // 日本語キーも許容し、全角コロンもOK
+  const KEYMAP = {
+    'ticket': 'ticket', 'チケット': 'ticket',
+    'url': 'url', 'link': 'url', 'リンク': 'url',
+    'price': 'price', '料金': 'price', '金額': 'price',
+    'venue': 'venue', '会場': 'venue', '場所': 'venue'
+  };
+
+  for (let raw of lines) {
+    if (!raw) continue;
+    const line = raw.trim();
+
+    // 先頭に絵文字や記号が来ても無視してマッチ（例: "🎫 ticket: ..."）
+    const m = line.match(/^[^\wぁ-んァ-ン一-龥]*(ticket|チケット|url|link|リンク|price|料金|金額|venue|会場|場所)\s*[:：]\s*(.+)$/i);
+    if (!m) continue;
+
+    const keyRaw = m[1].toLowerCase();
+    const key = KEYMAP[keyRaw] || keyRaw;
+
+    // 値の末尾の装飾・余計な空白を除去
+    let val = m[2]
+      .replace(/\s+$/g, '')
+      .replace(/<[^>]*>$/g, '')
+      .trim();
+
+    // URL行は最初のURLだけ取る（後ろに文字が続いても安全）
+    if ((key === 'ticket' || key === 'url')) {
+      const urlMatch = val.match(/https?:\/\/[^\s　]+/i);
+      if (urlMatch) val = urlMatch[0];
+    }
+
+    if (val) fields[key] = val;
+  }
+
+  return fields;
+}
+
     }
 
     function googleEventUrl(e) {
