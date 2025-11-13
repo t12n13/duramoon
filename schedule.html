@@ -51,6 +51,54 @@
     .btn.ticket { background: linear-gradient(135deg, #ff4da6, #7b5cff); }
     .btn.site { background: linear-gradient(135deg, #23c6ff, #358bff); }
     .btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+
+    /* ===== スマホ対応強化 ===== */
+　　@media (max-width: 768px) {
+ 　 .wrap {
+     padding: 12px;
+   }
+
+    .event-card {
+      padding: 14px 12px;
+      border-radius: 12px;
+  }
+
+    .event-title {
+      font-size: 1.05rem;
+      line-height: 1.3;
+  }
+
+    .event-meta {
+       flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      font-size: 0.9rem;
+  }
+
+    .pill {
+      display: inline-block;
+      margin: 2px 0;
+  }
+
+    .btns {
+      flex-direction: column;
+      gap: 8px;
+  }
+
+    .btn {
+      width: 100%;
+      text-align: center;
+      font-size: 0.9rem;
+      padding: 10px;
+  }
+
+    .event-desc {
+      font-size: 0.9rem;
+      line-height: 1.5;
+      word-break: break-word; /* 長いリンクや単語を折り返す */
+  }
+}
+
   </style>
 </head>
 <body>
