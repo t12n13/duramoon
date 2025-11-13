@@ -231,20 +231,29 @@ function parseFields(desc = '') {
         card.className = 'event-card';
         card.innerHTML = `
           <h3 class="event-title">${e.summary || '(無題)'}</h3>
+
+          <!-- 上段：通常メタ情報 -->
           <div class="event-meta">
             <span class="pill">📅 ${fmtJP(start)}</span>
             <span class="pill">🕒 ${fmtHM(start)}〜${fmtHM(end)}</span>
-            ${venue ? `<span class="pill">📍 ${venue}</span>` : ''}
             ${price ? `<span class="pill">💴 ${price}</span>` : ''}
-            ${live  ? `<span class="pill">🎤 ${live}</span>` : ''}
-            ${photo ? `<span class="pill">📷 ${photo}</span>` : ''}
             ${countdown}
           </div>
-          <div class="btns">
-            ${ticket ? `<a class="btn ticket" href="${ticket}" target="_blank">🎫 チケット</a>` : ''}
-            ${site ? `<a class="btn site" href="${site}" target="_blank">🔗 ドゥラ・ムーン公式X</a>` : ''}
-            <a class="btn" href="${googleEventUrl(e)}" target="_blank">📆 Googleカレンダーで開く</a>
-          </div>`;
+
+          <!-- 下段：強調したい4項目 -->
+          <div class="event-meta event-meta-detail">
+            ${venue ? `<span class="pill pill-strong">📍 会場：${venue}</span>` : ''}
+            ${live ? `<span class="pill pill-strong">🎤 出演時間：${live}</span>` : ''}
+            ${photo ? `<span class="pill pill-strong">📷 特典会：${photo}</span>` : ''}
+            ${bonus ? `<span class="pill pill-strong">🎁 動員特典：${bonus}</span>` : ''}
+          </div>
+
+  <div class="btns">
+    ${ticket ? `<a class="btn ticket" href="${ticket}" target="_blank">🎫 チケット</a>` : ''}
+    ${site ? `<a class="btn site" href="${site}" target="_blank">🔗 公式サイト</a>` : ''}
+    <a class="btn" href="${googleEventUrl(e)}" target="_blank">📆 Googleカレンダーで開く</a>
+  </div>
+`;
         el.appendChild(card);
       }
     }
