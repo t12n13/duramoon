@@ -146,19 +146,22 @@ function parseFields(desc = '') {
   const lines = norm.split('\n');
 
   // 日本語キーも許容し、全角コロンもOK
-  const KEYMAP = {
-    'ticket': 'ticket', 'チケット': 'ticket',
-    'url': 'url', 'link': 'url', 'リンク': 'url',
-    'price': 'price', '料金': 'price', '金額': 'price',
-    'venue': 'venue', '会場': 'venue', '場所': 'venue'
-  };
+ 
+　const KEYMAP = {
+  'ticket': 'ticket', 'チケット': 'ticket',
+  'url': 'url', 'link': 'url', 'リンク': 'url',
+  'price': 'price', '料金': 'price', '金額': 'price',
+  'venue': 'venue', '会場': 'venue', '場所': 'venue',
+  'live': 'live', '出演時間': 'live',
+  'photo': 'photo', '特典会': 'photo'
+};
 
   for (let raw of lines) {
     if (!raw) continue;
     const line = raw.trim();
 
     // 先頭に絵文字や記号が来ても無視してマッチ（例: "🎫 ticket: ..."）
-    const m = line.match(/^[^\wぁ-んァ-ン一-龥]*(ticket|チケット|url|link|リンク|price|料金|金額|venue|会場|場所)\s*[:：]\s*(.+)$/i);
+    const m = line.match(/^[^\wぁ-んァ-ン一-龥]*(ticket|チケット|url|link|リンク|price|料金|金額|venue|会場|場所|live|出演時間|photo|特典会)\s*[:：]\s*(.+)$/i);
     if (!m) continue;
 
     const keyRaw = m[1].toLowerCase();
@@ -219,6 +222,9 @@ function parseFields(desc = '') {
         const price = fields.price || '';
         const ticket = fields.ticket || '';
         const site = fields.url || '';
+        const live = fields.live || '';
+        const photo = fields.photo || '';
+
         const countdown = daysLeft(start) >= 0 ? `<span class="pill">⏳ あと${daysLeft(start)}日</span>` : '';
 
         const card = document.createElement('article');
@@ -230,6 +236,8 @@ function parseFields(desc = '') {
             <span class="pill">🕒 ${fmtHM(start)}〜${fmtHM(end)}</span>
             ${venue ? `<span class="pill">📍 ${venue}</span>` : ''}
             ${price ? `<span class="pill">💴 ${price}</span>` : ''}
+            ${live  ? `<span class="pill">🎤 ${live}</span>` : ''}
+            ${photo ? `<span class="pill">📷 ${photo}</span>` : ''}
             ${countdown}
           </div>
           <div class="btns">
