@@ -40,102 +40,47 @@
       box-shadow: 0 12px 24px rgba(0,0,0,.25);
     }
 
-    .event-title {
-      font-weight:700;
-      font-size:1.15rem;
-      margin:0 0 4px;
-    }
-    .event-meta {
-      color:#b8c0cc;
-      font-size:.95rem;
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin-top:6px;
-    }
-    .pill {
-      background: rgba(255,255,255,.09);
-      border:1px solid rgba(255,255,255,.08);
-      padding:6px 10px;
-      border-radius:100px;
-    }
-    .dot {
-      width:6px;
-      height:6px;
-      border-radius:50%;
-      background:rgba(255,255,255,.35);
-      display:inline-block;
-    }
-
-    .btns {
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      margin-top:14px;
-    }
-    .btn {
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:10px 14px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.12);
-      color:#f5f7ff;
-      font-weight:700;
-      background: rgba(28,30,40,.7);
-      text-decoration:none;
-      transition: filter .15s ease, transform .15s ease;
-    }
+    .event-title { font-weight:700; font-size:1.15rem; margin:0 0 4px; }
+    .event-meta { color:#b8c0cc; font-size:.95rem; display:flex; flex-wrap:wrap; gap:8px; }
+    .pill { background: rgba(255,255,255,.09); border:1px solid rgba(255,255,255,.08); padding:6px 10px; border-radius:100px; }
+    .dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.35); display:inline-block; }
+    .btns { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+    .btn { display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:12px;
+           border:1px solid rgba(255,255,255,.12); color:#f5f7ff; font-weight:700;
+           background: rgba(28,30,40,.7); text-decoration:none; }
     .btn.ticket { background: linear-gradient(135deg, #ff4da6, #7b5cff); }
     .btn.site   { background: linear-gradient(135deg, #23c6ff, #358bff); }
-    .btn:hover  { filter: brightness(1.08); transform: translateY(-1px); }
+    .btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
 
-    .empty {
-      color:#dbe2f3;
-      opacity:.85;
-      padding:18px 16px;
-      border-radius:14px;
-      border:1px dashed rgba(255,255,255,.15);
-      background: rgba(255,255,255,.04);
-      margin-top:12px;
-    }
-
-    /* --- 強調表示（会場・出演時間・特典会・動員特典） --- */
-    .event-meta-detail {
-      display:flex;
-      flex-direction:column;  /* 縦並び */
-      gap:4px;
-      margin-top:8px;
-    }
+    /* --- 強調表示（会場／出演時間／特典会／動員特典） --- */
     .pill-strong {
       background: rgba(255,255,255,0.18) !important;
       border: 1px solid rgba(255,255,255,0.25) !important;
       color: #ffffff;
       font-weight: 700;
       font-size: 1.05rem;
-      display: inline-block;
     }
 
-    /* --- 画像ギャラリー（img:〜 で指定された画像） --- */
+    .event-meta-detail {
+      flex-direction: column;
+      align-items: flex-start;
+      margin-top: 10px;
+      gap: 6px;
+    }
+
+    /* 画像表示エリア */
     .event-images {
-      margin-top: 12px;
+      margin-top: 14px;
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
-      justify-content: flex-start;
+      gap: 10px;
     }
     .event-images img {
-      width: 280px;          /* PCで「いい感じ」の大きさ */
-      max-width: 100%;       /* スマホでは横幅にフィット */
+      display:block;
+      max-width: 100%;
+      height: auto;
       border-radius: 12px;
       border: 1px solid rgba(255,255,255,0.2);
-      object-fit: cover;
-      cursor: pointer;
-      transition: transform .15s ease, opacity .15s ease;
-    }
-    .event-images img:hover {
-      transform: scale(1.03);
-      opacity: .9;
     }
 
     /* ===== スマホ対応強化 ===== */
@@ -195,7 +140,7 @@
 
   <script src="assets/config.js"></script>
   <script>
-    // ==== 日付フォーマット ====
+    // ==== 日付フォーマット ==== 
     const fmtJP = iso => new Intl.DateTimeFormat('ja-JP', {
       year:'numeric', month:'long', day:'numeric',
       weekday:'short', hour:'2-digit', minute:'2-digit', hour12:false
@@ -211,20 +156,19 @@
       return Math.floor(ms / (1000*60*60*24));
     };
 
-    // ==== descriptionを解析（ticket / url / price / venue / live / photo / bonus / img）====
+    // ==== description を解析 ====
+    // 説明欄から ticket / url / price / venue / live / photo / bonus / img を抜き出す
     function parseFields(desc = '') {
       const fields = {};
 
-      // 正規化：改行 / 全角スペース / <br> を統一
       const norm = String(desc)
         .replace(/\r\n/g, '\n')
         .replace(/<br\s*\/?>/gi, '\n')
         .replace(/\u00A0/g, ' ')
-        .replace(/\u3000/g, ' ');    // 全角スペース → 半角
+        .replace(/\u3000/g, ' ');
 
       const lines = norm.split('\n');
 
-      // 日本語キーも許容
       const KEYMAP = {
         'ticket': 'ticket', 'チケット': 'ticket',
         'url': 'url', 'link': 'url', 'リンク': 'url',
@@ -233,41 +177,38 @@
         'live': 'live', '出演時間': 'live',
         'photo': 'photo', '特典会': 'photo',
         'bonus': 'bonus', '動員特典': 'bonus',
-        'img': 'img'
+        'img': 'img', '画像': 'img'
       };
 
       for (let raw of lines) {
         if (!raw) continue;
         const line = raw.trim();
 
-        // 先頭に絵文字や記号が来ても無視してマッチ（例: "🎫 ticket: ..."）
-        const m = line.match(/^[^\wぁ-んァ-ン一-龥]*(ticket|チケット|url|link|リンク|price|料金|金額|venue|会場|場所|live|出演時間|photo|特典会|bonus|動員特典|img)\s*[:：]\s*(.+)$/i);
+        const m = line.match(
+          /^[^\wぁ-んァ-ン一-龥]*(ticket|チケット|url|link|リンク|price|料金|金額|venue|会場|場所|live|出演時間|photo|特典会|bonus|動員特典|img|画像)\s*[:：]\s*(.+)$/i
+        );
         if (!m) continue;
 
         const keyRaw = m[1].toLowerCase();
         const key = KEYMAP[keyRaw] || keyRaw;
 
-        // 値の末尾の装飾・余計な空白を除去
         let val = m[2]
           .replace(/\s+$/g, '')
           .replace(/<[^>]*>$/g, '')
           .trim();
 
-        // img: は複数行対応
+        // img は複数行対応・URL だけ取り出す
         if (key === 'img') {
           if (!fields.img) fields.img = [];
-          if (val) fields.img.push(val);
+          const urlMatch = val.match(/https?:\/\/[^\s　"'<>]+/i);
+          if (urlMatch) fields.img.push(urlMatch[0]);
           continue;
         }
 
-        // URL行は最初のURLだけ取る（後ろに文字が続いても安全）
+        // ticket / url は先頭の URL だけ抜く
         if (key === 'ticket' || key === 'url') {
           const urlMatch = val.match(/https?:\/\/[^\s　"'<>]+/i);
-          if (urlMatch) {
-            val = urlMatch[0];
-          } else {
-            val = '';
-          }
+          if (urlMatch) val = urlMatch[0];
         }
 
         if (val) fields[key] = val;
@@ -288,17 +229,12 @@
       url.searchParams.set('key', CONFIG.API_KEY);
       url.searchParams.set('singleEvents', 'true');
       url.searchParams.set('orderBy', 'startTime');
-
-      // 今日の0:00以降
-      const timeMin = new Date();
-      timeMin.setHours(0,0,0,0);
-      url.searchParams.set('timeMin', timeMin.toISOString());
-
+      url.searchParams.set('timeMin', new Date().toISOString());
       url.searchParams.set('maxResults', '50');
 
       const res = await fetch(url);
       if (!res.ok) {
-        el.innerHTML = `<div class="empty">読み込み失敗。APIキー設定とカレンダーの公開設定を確認してください。</div>`;
+        el.innerHTML = `<div class="empty">読み込み失敗。APIキー設定を確認してください。</div>`;
         return;
       }
 
@@ -310,21 +246,20 @@
       }
 
       el.innerHTML = '';
-
       for (const e of items) {
         const start = e.start?.dateTime || (e.start?.date ? e.start.date + 'T00:00:00' : null);
         const end   = e.end?.dateTime   || (e.end?.date   ? e.end.date   + 'T23:59:59' : null);
         if (!start) continue;
 
         const fields = parseFields(e.description || '');
-        const venue  = fields.venue || '';
+        const venue  = fields.venue || e.location || '';
         const price  = fields.price || '';
         const ticket = fields.ticket || '';
-        const site   = fields.url   || '';
-        const live   = fields.live  || '';
+        const site   = fields.url || '';
+        const live   = fields.live || '';
         const photo  = fields.photo || '';
         const bonus  = fields.bonus || '';
-        const images = fields.img   || [];
+        const images = fields.img || [];
 
         const d = daysLeft(start);
         const countdown = d >= 0 ? `<span class="pill">⏳ あと${d}日</span>` : '';
@@ -334,15 +269,15 @@
         card.innerHTML = `
           <h3 class="event-title">${e.summary || '(無題)'}</h3>
 
-          <!-- 上段：通常メタ情報（日付・時間・料金など） -->
+          <!-- 上段：日付・基本時間・料金など -->
           <div class="event-meta">
             <span class="pill">📅 ${fmtJP(start)}</span>
-            <span class="pill">🕒 ${fmtHM(start)}〜${end ? fmtHM(end) : ''}</span>
+            ${end ? `<span class="pill">🕒 ${fmtHM(start)}〜${fmtHM(end)}</span>` : ''}
             ${price ? `<span class="pill">💴 ${price}</span>` : ''}
             ${countdown}
           </div>
 
-          <!-- 下段：会場・出演時間・特典会・動員特典（縦並び＋強調） -->
+          <!-- 下段：会場／出演時間／特典会／動員特典を縦並びで強調 -->
           <div class="event-meta event-meta-detail">
             ${venue ? `<span class="pill pill-strong">📍 会場：${venue}</span>` : ''}
             ${live  ? `<span class="pill pill-strong">🎤 出演時間：${live}</span>` : ''}
@@ -350,20 +285,19 @@
             ${bonus ? `<span class="pill pill-strong">🎁 動員特典：${bonus}</span>` : ''}
           </div>
 
-          <!-- 画像ギャラリー -->
-          ${
-            images.length
-              ? `<div class="event-images">
-                  ${images.map(src =>
-                    `<img src="${src}" alt="" onclick="window.open('${src}', '_blank')">`
-                  ).join('')}
-                 </div>`
-              : ''
-          }
+          ${images.length ? `
+            <div class="event-images">
+              ${images.map(src =>
+                `<a href="${src}" target="_blank" rel="noopener">
+                   <img src="${src}" alt="">
+                 </a>`
+              ).join('')}
+            </div>
+          ` : ''}
 
           <div class="btns">
             ${ticket ? `<a class="btn ticket" href="${ticket}" target="_blank" rel="noopener">🎫 チケット</a>` : ''}
-            ${site   ? `<a class="btn site"   href="${site}"   target="_blank" rel="noopener">🔗 Xで詳細を確認する</a>` : ''}
+            ${site   ? `<a class="btn site"   href="${site}"   target="_blank" rel="noopener">🔗 公式サイト</a>` : ''}
             <a class="btn" href="${googleEventUrl(e)}" target="_blank" rel="noopener">📆 Googleカレンダーで開く</a>
           </div>
         `;
@@ -371,7 +305,7 @@
       }
     }
 
-    window.addEventListener('DOMContentLoaded', loadEvents);
+    loadEvents();
   </script>
 </body>
 </html>
