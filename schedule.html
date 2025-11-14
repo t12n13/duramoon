@@ -45,9 +45,13 @@
     .pill { background: rgba(255,255,255,.09); border:1px solid rgba(255,255,255,.08); padding:6px 10px; border-radius:100px; }
     .dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.35); display:inline-block; }
     .btns { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
-    .btn { display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:12px;
-           border:1px solid rgba(255,255,255,.12); color:#f5f7ff; font-weight:700;
-           background: rgba(28,30,40,.7); text-decoration:none; }
+    .btn {
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 14px; border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
+      color:#f5f7ff; font-weight:700;
+      background: rgba(28,30,40,.7); text-decoration:none;
+    }
     .btn.ticket { background: linear-gradient(135deg, #ff4da6, #7b5cff); }
     .btn.site   { background: linear-gradient(135deg, #23c6ff, #358bff); }
     .btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
@@ -60,7 +64,6 @@
       font-weight: 700;
       font-size: 1.05rem;
     }
-
     .event-meta-detail {
       flex-direction: column;
       align-items: flex-start;
@@ -88,34 +91,28 @@
       .wrap {
         padding: 12px;
       }
-
       .event-card {
         padding: 14px 12px;
         border-radius: 12px;
       }
-
       .event-title {
         font-size: 1.05rem;
         line-height: 1.3;
       }
-
       .event-meta {
         flex-direction: column;
         align-items: flex-start;
         gap: 4px;
         font-size: 0.9rem;
       }
-
       .pill {
         display: inline-block;
         margin: 2px 0;
       }
-
       .btns {
         flex-direction: column;
         gap: 8px;
       }
-
       .btn {
         width: 100%;
         text-align: center;
@@ -140,7 +137,7 @@
 
   <script src="assets/config.js"></script>
   <script>
-    // ==== 日付フォーマット ==== 
+    // ==== 日付フォーマット ====
     const fmtJP = iso => new Intl.DateTimeFormat('ja-JP', {
       year:'numeric', month:'long', day:'numeric',
       weekday:'short', hour:'2-digit', minute:'2-digit', hour12:false
@@ -157,7 +154,6 @@
     };
 
     // ==== description を解析 ====
-    // 説明欄から ticket / url / price / venue / live / photo / bonus / img を抜き出す
     function parseFields(desc = '') {
       const fields = {};
 
@@ -197,7 +193,7 @@
           .replace(/<[^>]*>$/g, '')
           .trim();
 
-        // img は複数行対応・URL だけ取り出す
+        // 画像は配列で
         if (key === 'img') {
           if (!fields.img) fields.img = [];
           const urlMatch = val.match(/https?:\/\/[^\s　"'<>]+/i);
@@ -205,7 +201,7 @@
           continue;
         }
 
-        // ticket / url は先頭の URL だけ抜く
+        // ticket / url は URL 部だけ
         if (key === 'ticket' || key === 'url') {
           const urlMatch = val.match(/https?:\/\/[^\s　"'<>]+/i);
           if (urlMatch) val = urlMatch[0];
@@ -262,45 +258,134 @@
         const images = fields.img || [];
 
         const d = daysLeft(start);
-        const countdown = d >= 0 ? `<span class="pill">⏳ あと${d}日</span>` : '';
+        const countdownText = d >= 0 ? `あと${d}日` : '';
 
         const card = document.createElement('article');
         card.className = 'event-card';
-        card.innerHTML = `
-          <h3 class="event-title">${e.summary || '(無題)'}</h3>
 
-          <!-- 上段：日付・基本時間・料金など -->
-          <div class="event-meta">
-            <span class="pill">📅 ${fmtJP(start)}</span>
-            ${end ? `<span class="pill">🕒 ${fmtHM(start)}〜${fmtHM(end)}</span>` : ''}
-            ${price ? `<span class="pill">💴 ${price}</span>` : ''}
-            ${countdown}
-          </div>
+        // タイトル
+        const titleEl = document.createElement('h3');
+        titleEl.className = 'event-title';
+        titleEl.textContent = e.summary || '(無題)';
+        card.appendChild(titleEl);
 
-          <!-- 下段：会場／出演時間／特典会／動員特典を縦並びで強調 -->
-          <div class="event-meta event-meta-detail">
-            ${venue ? `<span class="pill pill-strong">📍 会場：${venue}</span>` : ''}
-            ${live  ? `<span class="pill pill-strong">🎤 出演時間：${live}</span>` : ''}
-            ${photo ? `<span class="pill pill-strong">📷 特典会：${photo}</span>` : ''}
-            ${bonus ? `<span class="pill pill-strong">🎁 動員特典：${bonus}</span>` : ''}
-          </div>
+        // 上段メタ
+        const metaTop = document.createElement('div');
+        metaTop.className = 'event-meta';
 
-          ${images.length ? `
-            <div class="event-images">
-              ${images.map(src =>
-                `<a href="${src}" target="_blank" rel="noopener">
-                   <img src="${src}" alt="">
-                 </a>`
-              ).join('')}
-            </div>
-          ` : ''}
+        const datePill = document.createElement('span');
+        datePill.className = 'pill';
+        datePill.textContent = `📅 ${fmtJP(start)}`;
+        metaTop.appendChild(datePill);
 
-          <div class="btns">
-            ${ticket ? `<a class="btn ticket" href="${ticket}" target="_blank" rel="noopener">🎫 チケット</a>` : ''}
-            ${site   ? `<a class="btn site"   href="${site}"   target="_blank" rel="noopener">🔗 公式サイト</a>` : ''}
-            <a class="btn" href="${googleEventUrl(e)}" target="_blank" rel="noopener">📆 Googleカレンダーで開く</a>
-          </div>
-        `;
+        if (end) {
+          const timePill = document.createElement('span');
+          timePill.className = 'pill';
+          timePill.textContent = `🕒 ${fmtHM(start)}〜${fmtHM(end)}`;
+          metaTop.appendChild(timePill);
+        }
+
+        if (price) {
+          const pricePill = document.createElement('span');
+          pricePill.className = 'pill';
+          pricePill.textContent = `💴 ${price}`;
+          metaTop.appendChild(pricePill);
+        }
+
+        if (countdownText) {
+          const cdPill = document.createElement('span');
+          cdPill.className = 'pill';
+          cdPill.textContent = `⏳ ${countdownText}`;
+          metaTop.appendChild(cdPill);
+        }
+
+        card.appendChild(metaTop);
+
+        // 下段メタ（会場／live／photo／bonus）
+        const metaDetail = document.createElement('div');
+        metaDetail.className = 'event-meta event-meta-detail';
+
+        if (venue) {
+          const v = document.createElement('span');
+          v.className = 'pill pill-strong';
+          v.textContent = `📍 会場：${venue}`;
+          metaDetail.appendChild(v);
+        }
+        if (live) {
+          const v = document.createElement('span');
+          v.className = 'pill pill-strong';
+          v.textContent = `🎤 出演時間：${live}`;
+          metaDetail.appendChild(v);
+        }
+        if (photo) {
+          const v = document.createElement('span');
+          v.className = 'pill pill-strong';
+          v.textContent = `📷 特典会：${photo}`;
+          metaDetail.appendChild(v);
+        }
+        if (bonus) {
+          const v = document.createElement('span');
+          v.className = 'pill pill-strong';
+          v.textContent = `🎁 動員特典：${bonus}`;
+          metaDetail.appendChild(v);
+        }
+
+        card.appendChild(metaDetail);
+
+        // 画像エリア
+        if (images.length) {
+          const imgWrap = document.createElement('div');
+          imgWrap.className = 'event-images';
+          images.forEach(src => {
+            const a = document.createElement('a');
+            a.href = src;
+            a.target = '_blank';
+            a.rel = 'noopener';
+
+            const img = document.createElement('img');
+            img.src = src;
+            img.alt = '';
+
+            a.appendChild(img);
+            imgWrap.appendChild(a);
+          });
+          card.appendChild(imgWrap);
+        }
+
+        // ボタン
+        const btns = document.createElement('div');
+        btns.className = 'btns';
+
+        if (ticket) {
+          const bt = document.createElement('a');
+          bt.className = 'btn ticket';
+          bt.href = ticket;
+          bt.target = '_blank';
+          bt.rel = 'noopener';
+          bt.textContent = '🎫 チケット';
+          btns.appendChild(bt);
+        }
+
+        if (site) {
+          const bs = document.createElement('a');
+          bs.className = 'btn site';
+          bs.href = site;
+          bs.target = '_blank';
+          bs.rel = 'noopener';
+          bs.textContent = '🔗 Xで詳細を確認する';
+          btns.appendChild(bs);
+        }
+
+        const bg = document.createElement('a');
+        bg.className = 'btn';
+        bg.href = googleEventUrl(e);
+        bg.target = '_blank';
+        bg.rel = 'noopener';
+        bg.textContent = '📆 Googleカレンダーで開く';
+        btns.appendChild(bg);
+
+        card.appendChild(btns);
+
         el.appendChild(card);
       }
     }
