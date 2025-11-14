@@ -40,7 +40,11 @@
       box-shadow: 0 12px 24px rgba(0,0,0,.25);
     }
 
-    .event-title { font-weight:700; font-size:1.15rem; margin:0 0 4px; }
+    .event-title {
+      font-weight:700;
+      font-size:1.15rem;
+      margin:0 0 4px;
+    }
     .event-meta {
       color:#b8c0cc;
       font-size:.95rem;
@@ -55,9 +59,20 @@
       padding:6px 10px;
       border-radius:100px;
     }
-    .dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.35); display:inline-block; }
+    .dot {
+      width:6px;
+      height:6px;
+      border-radius:50%;
+      background:rgba(255,255,255,.35);
+      display:inline-block;
+    }
 
-    .btns { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+    .btns {
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:14px;
+    }
     .btn {
       display:inline-flex;
       align-items:center;
@@ -73,7 +88,7 @@
     }
     .btn.ticket { background: linear-gradient(135deg, #ff4da6, #7b5cff); }
     .btn.site   { background: linear-gradient(135deg, #23c6ff, #358bff); }
-    .btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .btn:hover  { filter: brightness(1.08); transform: translateY(-1px); }
 
     .empty {
       color:#dbe2f3;
@@ -99,6 +114,28 @@
       font-weight: 700;
       font-size: 1.05rem;
       display: inline-block;
+    }
+
+    /* --- 画像ギャラリー（img:〜 で指定された画像） --- */
+    .event-images {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: flex-start;
+    }
+    .event-images img {
+      width: 280px;          /* PCで「いい感じ」の大きさ */
+      max-width: 100%;       /* スマホでは横幅にフィット */
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.2);
+      object-fit: cover;
+      cursor: pointer;
+      transition: transform .15s ease, opacity .15s ease;
+    }
+    .event-images img:hover {
+      transform: scale(1.03);
+      opacity: .9;
     }
 
     /* ===== スマホ対応強化 ===== */
@@ -140,12 +177,6 @@
         font-size: 0.9rem;
         padding: 10px;
       }
-
-      .event-desc {
-        font-size: 0.9rem;
-        line-height: 1.5;
-        word-break: break-word; /* 長いリンクや単語を折り返す */
-      }
     }
   </style>
 </head>
@@ -180,7 +211,7 @@
       return Math.floor(ms / (1000*60*60*24));
     };
 
-    // ==== descriptionを解析（ticket / url / price / venue / live / photo / bonus）====
+    // ==== descriptionを解析（ticket / url / price / venue / live / photo / bonus / img）====
     function parseFields(desc = '') {
       const fields = {};
 
@@ -201,7 +232,8 @@
         'venue': 'venue', '会場': 'venue', '場所': 'venue',
         'live': 'live', '出演時間': 'live',
         'photo': 'photo', '特典会': 'photo',
-        'bonus': 'bonus', '動員特典': 'bonus'
+        'bonus': 'bonus', '動員特典': 'bonus',
+        'img': 'img'
       };
 
       for (let raw of lines) {
@@ -209,7 +241,7 @@
         const line = raw.trim();
 
         // 先頭に絵文字や記号が来ても無視してマッチ（例: "🎫 ticket: ..."）
-        const m = line.match(/^[^\wぁ-んァ-ン一-龥]*(ticket|チケット|url|link|リンク|price|料金|金額|venue|会場|場所|live|出演時間|photo|特典会|bonus|動員特典)\s*[:：]\s*(.+)$/i);
+        const m = line.match(/^[^\wぁ-んァ-ン一-龥]*(ticket|チケット|url|link|リンク|price|料金|金額|venue|会場|場所|live|出演時間|photo|特典会|bonus|動員特典|img)\s*[:：]\s*(.+)$/i);
         if (!m) continue;
 
         const keyRaw = m[1].toLowerCase();
@@ -220,6 +252,13 @@
           .replace(/\s+$/g, '')
           .replace(/<[^>]*>$/g, '')
           .trim();
+
+        // img: は複数行対応
+        if (key === 'img') {
+          if (!fields.img) fields.img = [];
+          if (val) fields.img.push(val);
+          continue;
+        }
 
         // URL行は最初のURLだけ取る（後ろに文字が続いても安全）
         if (key === 'ticket' || key === 'url') {
@@ -281,10 +320,11 @@
         const venue  = fields.venue || '';
         const price  = fields.price || '';
         const ticket = fields.ticket || '';
-        const site   = fields.url || '';
-        const live   = fields.live || '';
+        const site   = fields.url   || '';
+        const live   = fields.live  || '';
         const photo  = fields.photo || '';
         const bonus  = fields.bonus || '';
+        const images = fields.img   || [];
 
         const d = daysLeft(start);
         const countdown = d >= 0 ? `<span class="pill">⏳ あと${d}日</span>` : '';
@@ -310,9 +350,20 @@
             ${bonus ? `<span class="pill pill-strong">🎁 動員特典：${bonus}</span>` : ''}
           </div>
 
+          <!-- 画像ギャラリー -->
+          ${
+            images.length
+              ? `<div class="event-images">
+                  ${images.map(src =>
+                    `<img src="${src}" alt="" onclick="window.open('${src}', '_blank')">`
+                  ).join('')}
+                 </div>`
+              : ''
+          }
+
           <div class="btns">
             ${ticket ? `<a class="btn ticket" href="${ticket}" target="_blank" rel="noopener">🎫 チケット</a>` : ''}
-            ${site   ? `<a class="btn site"   href="${site}"   target="_blank" rel="noopener">🔗 公式サイト</a>` : ''}
+            ${site   ? `<a class="btn site"   href="${site}"   target="_blank" rel="noopener">🔗 Xで詳細を確認する</a>` : ''}
             <a class="btn" href="${googleEventUrl(e)}" target="_blank" rel="noopener">📆 Googleカレンダーで開く</a>
           </div>
         `;
